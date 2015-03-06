@@ -20,11 +20,11 @@ Stage 3 (April 20)
 
 ----
 
-utils/
+`utils/`
 	- data structures and helpers
 
-samples/
+`samples/`
 	- sample test cases
 
-t/
+`t/`
 	- tests to check functionality
