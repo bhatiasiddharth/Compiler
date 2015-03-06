@@ -1,0 +1,14 @@
+// #4 Find minimum element in array
+// Features - loop, arrays
+
+fn main() {
+	let arr = [1, 1, 2, 5];
+	let mut i = 1;
+	let mut min = arr[0];
+	while(i < arr.size()) {
+		if(arr[i] < min) {
+			min = arr[i];
+		}
+		i++; 
+	}
+}

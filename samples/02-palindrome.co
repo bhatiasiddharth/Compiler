@@ -1,0 +1,9 @@
+// #2 Check if string is Palindrome
+// Features - loop, string, boolean
+
+fn main() {
+	let mut str1 = "radar";
+	if (str1 == str1.reverse()) {
+		print("Yes");
+	}
+}

@@ -1,0 +1,11 @@
+// #1 ​Sum upto n numbers
+// Features - loop, I/O, multiple-assignment
+
+fn main() {
+	let mut (i, n, sum) = (1, 0, 0);
+	scan(n);
+	while(i < n) {
+		sum=sum+ i; i = i + 1;
+	}
+	print(sum);
+}

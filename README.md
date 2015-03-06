@@ -5,7 +5,9 @@ Stage 1
 Stage 2 (March 20)
 ========
 	- Lexical Analyzer
-	- Syntax Analyzer
+		- Print tokens
+		- Report lexical errors
+	- Parser
 	- Abstract Syntax Tree
 	- Symbol Table
 
@@ -15,3 +17,14 @@ Stage 3 (April 20)
 ========
 	- Semantic Analyzer
 	- Code Generation
+
+----
+
+utils/
+	- data structures and helpers
+
+samples/
+	- sample test cases
+
+t/
+	- tests to check functionality

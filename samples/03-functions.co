@@ -1,0 +1,14 @@
+// #3 Add using functions
+// Features - loop, I/O, if, functions
+
+fn add(x:i32, y:i32) -> i32 {
+   let mut ans = 0;
+   ans = x + y;
+   return ans;
+}
+
+fn main (){
+   let mut x = 0;
+   x = add(1, 2);
+   print(x);
+}
