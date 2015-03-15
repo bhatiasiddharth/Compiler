@@ -1,5 +1,6 @@
-
 main() {
+	// #2 Check if string is Palindrome
+	// Features - loop, string, boolean
 	let mut str1 = "radsar";
 	if (str1 == str1.reverse()) {
 		print("Yes");

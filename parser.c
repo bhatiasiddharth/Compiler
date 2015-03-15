@@ -2,15 +2,12 @@
 #include "stack.h"
 
 
-
 int parse_table[NONTERM_COUNT][TERM_COUNT];
-
-const char* token_names[] = {"COMMENT", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE" , "NE", "RARROW", "ASSIGNOP", "OSQUARE", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COLON", "COMMA", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "DOT","RETURN", "CHAR", "I32", "F32", "BOOL", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT", "TRUE", "FALSE", "MUT"};
 
 const char* nonterm_names[] = {"Program", "Functions", "FunctionDef", "fnReturn", "Statements", "moreStmts", "Stmt", "ReturnStmt", "BreakStmt", "DeclarationStmt", "moreDeclarations", "mutMod", "Declaration", "moreTypes", "AssignStmtType2", "listTypes", "typeList", "moreList", "singleAssn", "multAssn", "moreAssn", "IDStmts", "IDStmts2", "Index", "moreIndex", "AssignStmtType1", "FunCall", "MethodCall", "FunCallStmt", "MethodStmt", "Type", "parameterList", "remainingList", "IfStmt", "ElseStmt", "IStmt", "OStmt", "value", "array", "IDList", "moreIds", "arithExpn", "moreTerms", "arithTerm", "moreFactors", "factor", "opLow", "relType", "opHigh", "boolExpn", "logicalOp", "relationalOp", "LoopStmt", "grid", "rows", "moreRows", "row", "moreNums", "boolean", "DOLLAR","EPSILON"};
 
 
-int rules[120][20] = {
+int rules[RULE_COUNT][RULE_MAX_SYMBOLS] = {
     { Functions, MAIN, OPAREN, CPAREN, OBRACE, Statements, CBRACE, STOP },
     { FunctionDef, Functions, STOP },
     { EPSILON, STOP },
@@ -129,93 +126,11 @@ int rules[120][20] = {
     { TRUE, STOP }
 };
 
-int parse()
-{
-    stack stack = createStack();
-    struct token token;
-    int status = gettok(&token);//need to push dollar have done in stack.c
-
-    push(100, &stack);
-    while(status!=-1)
-    {
-        display(stack);
-        if(status == 0 && top(stack) == dollar)   //change to dollar
-        {
-            printf("SUCCESSFUL\n");
-            return 1;
-        }
-
-        if(top(stack) == EPSILON)
-        {
-            pop(&stack);
-        }
-
-        else if(top(stack) < 100)
-        {
-            //printf("%s %s\n", token_names[top(stack)], token_names[token.type ]);
-            if(top(stack) == token.type)
-            {
-                
-                printf("Popped term %s\n",token_names[top(stack)] );   
-                pop(&stack);
-                memset(&token, 0, sizeof(token));
-                status = gettok(&token);
-                
-
-            }
-            else
-            {
-                printf("Error in Terminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],token_names[top(stack)],token.linenum,token.colnum);
-                return 0;
-            }
-        }
-
-        else    //Non terminal
-        {
-            int rule = parse_table[top(stack)][token.type];
-            
-            //printf("Rule %d\n",rule );
-            int i=0;
-            if(rule==-1)
-            {
-               printf("Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],nonterm_names[top(stack)-100],token.linenum,token.colnum);
-                return 0;
-            }
-
-            printf("Popped nonterm %s\n",nonterm_names[top(stack)-100] );   
-            pop(&stack);
-            while(rules[rule][i]!=STOP)
-                i++;
-            i--;
-            while(i!=-1)
-            {
-                push(rules[rule][i],&stack);
-                //printf("%d:%s ", rules[rule][i],token_names[rules[rule][i]]);
-                i--;
-            }
-            //printf("\n");
-            //printf("Top of stack %s\n",nonterm_names[top(stack)-100]);
-        }
-    }
-    if(status==-1)
-    {
-
-        if(token.type>=100)
-            printf("%s %d %d",nonterm_names[token.type-100],token.linenum,token.colnum);
-
-      else
-        printf("%s %d %d", token_names[token.type],token.linenum,token.colnum);
-    }
-}
-
-
-int main(int argc, char *argv[])
-{
-    int k,l;
-
-    for(k=0;k<NONTERM_COUNT;k++)
-        for(l=0;l<TERM_COUNT;l++)
-            parse_table[k][l]=-1;
+void init_parse_table(){
+    // initialize undefined positions with -1
+    for(int i = 0; i < NONTERM_COUNT; i++)
+        for(int j = 0; j < TERM_COUNT; j++)
+            parse_table[i][j] = -1;
 
     parse_table[Program][FN] = 0;
     parse_table[Program][MAIN] = 0;
@@ -484,85 +399,89 @@ int main(int argc, char *argv[])
     parse_table[moreNums][COLON] = 113;
     parse_table[boolean][FALSE] = 114;
     parse_table[boolean][TRUE] = 115;
-
-
-parse();
-
-/*
- int status;
-  struct token token;
-  while((status = gettok(&token))) {
-    if(status == -1) {
-      //printf("Error - Invalid token\n");
-      break;
-    }
-    printf("(%2d, %2d)\t %10s\t %s%s \n", token.linenum, token.colnum, token_names[token.type], (token.type >= KWRD_BEGIN ? "Keyword - " : ""), token.lexeme);
-    bzero(&token, sizeof(token));
-  }
-  return 0;
-*/
-
-
 }
 
-/*
+int parse()
+{
+    stack stack = createStack();
+    struct token token;
+    int status = gettok(&token);//need to push dollar have done in stack.c
+
+    push(100, &stack);
+    while(status!=-1)
+    {
+        display(stack);
+        if(status == 0 && top(stack) == dollar)   //change to dollar
+        {
+            printf("SUCCESSFUL\n");
+            return 1;
+        }
+
+        if(top(stack) == EPSILON)
+        {
+            pop(&stack);
+        }
+
+        else if(top(stack) < 100)
+        {
+            //printf("%s %s\n", token_names[top(stack)], token_names[token.type ]);
+            if(top(stack) == token.type)
+            {
+                
+                printf("Popped term %s\n",token_names[top(stack)] );   
+                pop(&stack);
+                memset(&token, 0, sizeof(token));
+                status = gettok(&token);
+                
+
+            }
+            else
+            {
+                printf("Error in Terminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],token_names[top(stack)],token.linenum,token.colnum);
+                return 0;
+            }
+        }
+
+        else    //Non terminal
+        {
+            int rule = parse_table[top(stack)][token.type];
+            
+            //printf("Rule %d\n",rule );
+            int i=0;
+            if(rule==-1)
+            {
+               printf("Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],nonterm_names[top(stack)-100],token.linenum,token.colnum);
+                return 0;
+            }
+
+            printf("Popped nonterm %s\n",nonterm_names[top(stack)-100] );   
+            pop(&stack);
+            while(rules[rule][i]!=STOP)
+                i++;
+            i--;
+            while(i!=-1)
+            {
+                push(rules[rule][i],&stack);
+                //printf("%d:%s ", rules[rule][i],token_names[rules[rule][i]]);
+                i--;
+            }
+            //printf("\n");
+            //printf("Top of stack %s\n",nonterm_names[top(stack)-100]);
+        }
+    }
+    if(status==-1)
+    {
+
+        if(token.type>=100)
+            printf("%s %d %d",nonterm_names[token.type-100],token.linenum,token.colnum);
+
+      else
+        printf("%s %d %d", token_names[token.type],token.linenum,token.colnum);
+    }
+}
 
 
-int parseInputSource(char *sourceFile,char *grammarFile) // returns whether syntactically correct or not!
-{	 
-	 
-    st = createStack();
-         grammar = l;
-
-	 openFile(sourceFile);
-	 lineCount = 1;
-	 startOfToken = 0;
-	 tokenInfo temp;
-	 endSymbol =-2;
-	 temp = getNextToken();
-    push(endSymbol,&st);
-    push(Program,&st);
-	 tokenInfo raddi;
-	 raddi.tokenId = -3;
-         headTree = create(100,NULL,raddi);
-	 tree dummy = headTree;
-	 while(temp.tokenId!=-1)
-	 {
-     if(temp.tokenId == endSymbol && top(st)==endSymbol) 
-		 {	
-		 		return 1;
-     }
-		 if((top(st))==EPSILON) //is e 
-     {
-      pop(&st);
-     }
-     else if(top(st)>=100) //is non terminal
-      {
-         int c = temp.tokenId;
-         int r = top(st)-100;
-         int rule = parse_table[]
-         int rule = parsing_table[r][c];
-         //headTree.ruleNo = rule;
-         if(rule==-1) {printf("SYNTAX_ERROR: Found :TokenId %s  ::  Expecting: TokenId %s \n",mapTo[c],mapTo[top(st)]);return 0;}
-         headTree = insertChildren(headTree,raddi,rule,grammar);//tree
-
-         pushIntoStack(rule);
-      }
-      else //if terminal
-      {
-         if(top(st)==temp.tokenId) 
-         {				addLexeme(dummy,temp);
-						temp = getNextToken();
-						
-            pop(&st);
-         }
-         else {
-           printf("ERROR_5: The token %s for lexeme %s does not match at line %d.The expected token here is %d",temp.token,temp.lexeme,temp.line,top(st));
-					 return 0;
-         }
-			
-	 	  }
-		}
-		return 0;
-} 
-*/
+int main(int argc, char *argv[]) {
+   init_parse_table();
+    parse();
+}

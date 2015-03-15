@@ -5,7 +5,4 @@ main() {
 		sum=sum+ i; i = i + 1;
 	}
 	print(sum);
-	// #2 Check if string is Palindrome
-// Features - loop, string, boolean
-
 }

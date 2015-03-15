@@ -1,9 +1,8 @@
 #include "lexer.h"
 
-const char* token_names2[] = {"COMMENT", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE" , "NE", "RARROW", "ASSIGNOP", "OSQUARE", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COLON", "COMMA", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "DOT","RETURN", "CHAR", "I32", "F32", "BOOL", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT", "TRUE", "FALSE", "MUT"};
+const char* token_names[] = {"COMMENT", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE" , "NE", "RARROW", "ASSIGNOP", "OSQUARE", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COLON", "COMMA", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "DOT","RETURN", "CHAR", "I32", "F32", "BOOL", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT", "TRUE", "FALSE", "MUT"};
 
-int current_char = ' ';
-int linenum = 1, colnum = 1;
+
 int single_token_map[][2] = {
   { '[', OSQUARE },
   { ']', CSQUARE },
@@ -26,7 +25,8 @@ void build_lexeme(char* str, char c) {
 
 int gettok(struct token* token) {
   int i;
-  
+  static int current_char = ' ';
+  static int linenum = 1, colnum = 1;
   bzero(token->lexeme, MAX_LEN);
   
   // Skip any whitespace.
@@ -50,7 +50,7 @@ int gettok(struct token* token) {
     }
 
     for(i = KWRD_BEGIN; i < KWRD_BEGIN + KWRD_CNT; i++) {
-      if(strcasecmp(token->lexeme, token_names2[i]) == 0)
+      if(strcasecmp(token->lexeme, token_names[i]) == 0)
         token->type = i;
     }
     colnum += strlen(token->lexeme);
