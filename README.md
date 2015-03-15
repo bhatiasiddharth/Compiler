@@ -3,8 +3,9 @@ Stage 1
 
 - Grammer
 
-Stage 2 (March 20)
+Stage 2 
 ========
+Deadline - March 20
 
 - Lexical Analyzer
 	- Print tokens
@@ -15,8 +16,9 @@ Stage 2 (March 20)
 
 Plan / list your semantic rules of your language (March 25)
 
-Stage 3 (April 20)
+Stage 3 
 ========
+Deadline - April 20
 
 - Semantic Analyzer
 - Code Generation
