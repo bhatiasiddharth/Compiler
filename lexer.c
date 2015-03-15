@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-enum token_type { COMMENT, ID, NUM, FLOAT, STRL, CHARL, LE, EQ, GE , NE, RARROW, ASSIGNOP, OSQUARE, CSQUARE, OPAREN, CPAREN, OBRACE, CBRACE, SEMICOLON, COLON, COMMA, PLUS, MINUS, MUL, DIV, LT, GT, DOT , RETURN, CHAR, I32, F32, BOOL, STRING, MAIN, FN, LET, WHILE, BREAK, IF, ELSE, ELSEIF, SCAN, PRINT, AND, OR, NOT};
-
-const char* token_names[] = {"COMMENT", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE" , "NE", "RARROW", "ASSIGNOP", "OSQUARE", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COLON", "COMMA", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "DOT","RETURN", "CHAR", "I32", "F32", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT"};
+#include "lexer.h"
 
 int single_token_map[][2] = {
   { '[', OSQUARE },
@@ -20,29 +15,12 @@ int single_token_map[][2] = {
   { '.', DOT  }
 };
 
-#define MAX_LEN 80
-#define KWRD_CNT 18
-#define SINGLE_TKNS 12
-#define KWRD_BEGIN RETURN
-
-
-struct token {
-  unsigned int linenum, colnum;
-  enum token_type type;
-  char lexeme[MAX_LEN];
-  union {
-    char ch;
-    int inum;
-    float fnum;
-  } value;
-};
-
 void build_lexeme(char* str, char c) {
   char ch[2] = {c, 0};
   strcat(str, ch);
 }
 
-static int gettok(struct token* token) {
+int gettok(struct token* token) {
   static int current_char = ' ';
   static int linenum = 1, colnum = 1;
   bzero(token->lexeme, MAX_LEN);
