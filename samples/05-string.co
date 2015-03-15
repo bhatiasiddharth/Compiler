@@ -1,7 +1,5 @@
-// #5 Print String in uppercase
-// Feature String
 
-fn  main(){
+main(){
    let mut s = "Hello";
    s.toUpper();
    print(s);

@@ -1,2 +1,2 @@
 clean: 
-	rm -rf *.out *.dSYM
+	rm -rf *.out *.dSYM *.o

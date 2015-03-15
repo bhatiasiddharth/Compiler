@@ -1,5 +1,9 @@
 #include "lexer.h"
 
+const char* token_names2[] = {"COMMENT", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE" , "NE", "RARROW", "ASSIGNOP", "OSQUARE", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COLON", "COMMA", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "DOT","RETURN", "CHAR", "I32", "F32", "BOOL", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT", "TRUE", "FALSE", "MUT"};
+
+int current_char = ' ';
+int linenum = 1, colnum = 1;
 int single_token_map[][2] = {
   { '[', OSQUARE },
   { ']', CSQUARE },
@@ -21,8 +25,8 @@ void build_lexeme(char* str, char c) {
 }
 
 int gettok(struct token* token) {
-  static int current_char = ' ';
-  static int linenum = 1, colnum = 1;
+  int i;
+  
   bzero(token->lexeme, MAX_LEN);
   
   // Skip any whitespace.
@@ -45,8 +49,8 @@ int gettok(struct token* token) {
       build_lexeme(token->lexeme, current_char);
     }
 
-    for(int i = KWRD_BEGIN; i < KWRD_BEGIN + KWRD_CNT; i++) {
-      if(strcasecmp(token->lexeme, token_names[i]) == 0)
+    for(i = KWRD_BEGIN; i < KWRD_BEGIN + KWRD_CNT; i++) {
+      if(strcasecmp(token->lexeme, token_names2[i]) == 0)
         token->type = i;
     }
     colnum += strlen(token->lexeme);
@@ -157,9 +161,11 @@ int gettok(struct token* token) {
     }
     
     if(current_char == '"'){
+      current_char = getchar();
       colnum += strlen(token->lexeme) + 2;
       return 1;
     }else {
+      current_char = getchar();
       return -1;
     }
   }
@@ -178,7 +184,7 @@ int gettok(struct token* token) {
     }
   }
 
-  for(int i = 0; i < SINGLE_TKNS; i++) {
+  for(i = 0; i < SINGLE_TKNS; i++) {
     if(current_char == single_token_map[i][0]){          
       token->type = single_token_map[i][1];
       build_lexeme(token->lexeme, current_char);
@@ -192,20 +198,6 @@ int gettok(struct token* token) {
     // Error - Invalid token
     printf("(%d, %d) Error - Invalid token\n", linenum, colnum);
     return -1;
-  }
-  return 0;
-}
-
-int main(int argc, char *argv[]) {
-  int status;
-  struct token token;
-  while((status = gettok(&token))) {
-    if(status == -1) {
-      //printf("Error - Invalid token\n");
-      break;
-    }
-    printf("(%2d, %2d)\t %10s\t %s%s \n", token.linenum, token.colnum, token_names[token.type], (token.type >= KWRD_BEGIN ? "Keyword - " : ""), token.lexeme);
-    bzero(&token, sizeof(token));
   }
   return 0;
 }
