@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 enum token_type {COMMENT, ID, NUM, FLOAT, STRL, CHARL, LE, EQ, GE , NE, RARROW, ASSIGNOP, OSQUARE, CSQUARE, OPAREN, CPAREN, OBRACE, CBRACE, SEMICOLON, COLON, COMMA, PLUS, MINUS, MUL, DIV, LT, GT, DOT , RETURN, CHAR, I32, F32, BOOL, STRING, MAIN, FN, LET, WHILE, BREAK, IF, ELSE, ELSEIF, SCAN, PRINT, AND, OR, NOT, TRUE, FALSE, MUT};
 

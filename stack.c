@@ -1,62 +1,42 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "stackDataType.h"
+#include "stack.h"
 #include "parser.h"
 
-stack createStack()
-{ 
-   stack Top;
-   Top = (stack)malloc(sizeof(nodeS));
-   (Top)->next = NULL;
-   (Top)->value = 159;
-   return Top;
+struct stack* stack_init() { 
+   struct stack* stack;
+   stack = (struct stack*) malloc(sizeof(struct stack));
+   stack->top = NULL;
+   return stack;
 }
 
-void push(int item, stack* Top)
-{
-  if((*Top)->value==-1)
-  {
-   (*Top)->value = item; ((*Top)->next) = NULL;
-   return;
-  }
-   stack New;
-   New = (stack)malloc(sizeof(nodeS));
-   New->value = item;
-   New->next = *Top;
-   *Top = New;
+void stack_push(struct stack* stack, int item) {
+   struct stack_node* new_node = (struct stack_node*) malloc(sizeof(struct stack_node));
+   new_node->value = item;
+   new_node->next = stack->top;
+   stack->top = new_node;
 }
 
-int pop(stack* Top)
-{
-   if((*Top)==NULL) {printf("Cannot Pop!\n");return -1;};
-   int item;
-   stack temp;
-   item = (*Top)->value;
-   temp = *Top;
-   *Top = (*Top)->next;
+int stack_pop(struct stack* stack) {
+   if(stack->top == NULL){
+      printf("Cannot pop, stack is empty.");
+      return -1;
+   }
+   struct stack_node* temp = stack->top;
+   int item = temp->value;
+   stack->top = temp->next;
    free(temp);
    return item;
 }
 
-int top(stack st)
-{
-   return st->value;
+int stack_top(struct stack* stack) {
+   return stack->top->value;
 }
 
-void display(stack Top)
-{
+void stack_print(struct stack* stack) {
   printf("Display: ");
-  stack temp = Top;
-  while(temp!=NULL)
-  {
-   //printf("%d ",temp->value);
-   if(temp->value>=100)
-    printf("%s ",nonterm_names[temp->value-100]);
-
-  else
-    printf("%s ", token_names[temp->value]);
-
-   temp = temp->next;
+  struct stack_node* temp = stack->top;
+  while(temp != NULL){
+    print_symbol(temp->value);
+    temp = temp->next;
   }
 
   printf("\n");

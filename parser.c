@@ -7,7 +7,7 @@ int parse_table[NONTERM_COUNT][TERM_COUNT];
 const char* nonterm_names[] = {"Program", "Functions", "FunctionDef", "fnReturn", "Statements", "moreStmts", "Stmt", "ReturnStmt", "BreakStmt", "DeclarationStmt", "moreDeclarations", "mutMod", "Declaration", "moreTypes", "AssignStmtType2", "listTypes", "typeList", "moreList", "singleAssn", "multAssn", "moreAssn", "IDStmts", "IDStmts2", "Index", "moreIndex", "AssignStmtType1", "FunCall", "MethodCall", "FunCallStmt", "MethodStmt", "Type", "parameterList", "remainingList", "IfStmt", "ElseStmt", "IStmt", "OStmt", "value", "array", "IDList", "moreIds", "arithExpn", "moreTerms", "arithTerm", "moreFactors", "factor", "opLow", "relType", "opHigh", "boolExpn", "logicalOp", "relationalOp", "LoopStmt", "grid", "rows", "moreRows", "row", "moreNums", "boolean", "DOLLAR","EPSILON"};
 
 
-int rules[RULE_COUNT][RULE_MAX_SYMBOLS] = {
+const int rules[RULE_COUNT][RULE_MAX_SYMBOLS] = {
     { Functions, MAIN, OPAREN, CPAREN, OBRACE, Statements, CBRACE, STOP },
     { FunctionDef, Functions, STOP },
     { EPSILON, STOP },
@@ -403,33 +403,34 @@ void init_parse_table(){
 
 int parse()
 {
-    stack stack = createStack();
+    struct stack* stack = stack_init();
     struct token token;
     int status = gettok(&token);//need to push dollar have done in stack.c
-
-    push(100, &stack);
+    
+    stack_push(stack, dollar);
+    stack_push(stack, Program);
     while(status!=-1)
     {
-        display(stack);
-        if(status == 0 && top(stack) == dollar)   //change to dollar
+        stack_print(stack);
+        if(status == 0 && stack_top(stack) == dollar)   //change to dollar
         {
             printf("SUCCESSFUL\n");
             return 1;
         }
 
-        if(top(stack) == EPSILON)
+        if(stack_top(stack) == EPSILON)
         {
-            pop(&stack);
+            stack_pop(stack);
         }
 
-        else if(top(stack) < 100)
+        else if(stack_top(stack) < 100)
         {
-            //printf("%s %s\n", token_names[top(stack)], token_names[token.type ]);
-            if(top(stack) == token.type)
+            //printf("%s %s\n", token_names[stack_top(stack)], token_names[token.type ]);
+            if(stack_top(stack) == token.type)
             {
                 
-                printf("Popped term %s\n",token_names[top(stack)] );   
-                pop(&stack);
+                printf("Popped term %s\n",token_names[stack_top(stack)] );   
+                stack_pop(stack);
                 memset(&token, 0, sizeof(token));
                 status = gettok(&token);
                 
@@ -437,36 +438,36 @@ int parse()
             }
             else
             {
-                printf("Error in Terminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],token_names[top(stack)],token.linenum,token.colnum);
+                printf("Error in Terminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],token_names[stack_top(stack)],token.linenum,token.colnum);
                 return 0;
             }
         }
 
         else    //Non terminal
         {
-            int rule = parse_table[top(stack)][token.type];
+            int rule = parse_table[stack_top(stack)][token.type];
             
             //printf("Rule %d\n",rule );
             int i=0;
             if(rule==-1)
             {
-               printf("Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],nonterm_names[top(stack)-100],token.linenum,token.colnum);
+               printf("Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],nonterm_names[stack_top(stack)-100],token.linenum,token.colnum);
                 return 0;
             }
 
-            printf("Popped nonterm %s\n",nonterm_names[top(stack)-100] );   
-            pop(&stack);
+            printf("Popped nonterm %s\n",nonterm_names[stack_top(stack)-100] );   
+            stack_pop(stack);
             while(rules[rule][i]!=STOP)
                 i++;
             i--;
             while(i!=-1)
             {
-                push(rules[rule][i],&stack);
+                stack_push(stack, rules[rule][i]);
                 //printf("%d:%s ", rules[rule][i],token_names[rules[rule][i]]);
                 i--;
             }
             //printf("\n");
-            //printf("Top of stack %s\n",nonterm_names[top(stack)-100]);
+            //printf("Top of stack %s\n",nonterm_names[stack_top(stack)-100]);
         }
     }
     if(status==-1)
