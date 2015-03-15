@@ -12,10 +12,10 @@ struct stack_node {
 extern struct stack* stack_init();
 
 /* Check if stack is empty */
-extern int stack_isempty(struct stack*);
+extern int stack_empty(struct stack*);
 
-/* Empty the stack */
-extern int stack_clear(struct stack*);
+/* Dispose the stack */
+extern int stack_dispose(struct stack*);
 
 /* Push node to stack */
 extern int stack_push(struct stack stack*, int value);
@@ -26,4 +26,4 @@ extern int stack_pop(struct stack stack*);
 /* Print elements in stack */
 extern void stack_print(struct stack stack*);
 
-#endif _STACK_H
+#endif
