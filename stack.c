@@ -31,6 +31,10 @@ int stack_top(struct stack* stack) {
    return stack->top->value;
 }
 
+int stack_empty(struct stack* stack) {
+  return (stack->top == NULL);
+}
+
 void stack_print(struct stack* stack) {
   printf("Display: ");
   struct stack_node* temp = stack->top;

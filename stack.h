@@ -15,7 +15,7 @@ extern struct stack* stack_init();
 extern int stack_top(struct stack* stack);
 
 /* Check if stack is empty */
-// extern int stack_empty(struct stack* stack);
+extern int stack_empty(struct stack* stack);
 
 /* Dispose the stack */
 //extern int stack_dispose(struct stack* stack);
