@@ -1,14 +1,12 @@
-parser: parser.o lexer.o stack.o
-	gcc -g parser.o lexer.o stack.o -o parser
+CC = gcc
+CFLAGS = -w -g -std=c99
+DEPS = parser.o lexer.o stack.o
 
-parser.o: parser.c
-	gcc -g -c parser.c
+parser: $(DEPS)
+	$(CC) $(CFLAGS) $(DEPS) -o $@
 
-lexer.o: lexer.c
-	gcc -g -c lexer.c
-
-stack.o: stack.c
-	gcc -g -c stack.c
+%.o: %.c %.h
+	$(CC) -c $(CFLAGS) $<
 
 clean: 
 	rm -rf *.out *.dSYM *.o parser
