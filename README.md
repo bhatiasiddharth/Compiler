@@ -25,11 +25,15 @@ Deadline - April 20
 
 ----
 
-`utils/`
-	- data structures and helpers
+Instructions
+=============
 
-`samples/`
-	- sample test cases
+	make && ./parser < samples/01-sum.co
 
-`t/`
-	- tests to check functionality
+---
+
+TODO
+=====
+
+- Use linked list in tree.c
+- Create driver.c with command line arguments to show output for each stage

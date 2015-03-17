@@ -39,7 +39,6 @@ void tree_print(struct tree_node* root) {
 		printf("\t");
 
 	print_symbol(root->symbol);
-
 	printf("\n");
 
 	for(int i = 0; i < root->children_count; i++) {

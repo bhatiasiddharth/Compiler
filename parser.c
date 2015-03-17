@@ -6,7 +6,6 @@ int parse_table[NONTERM_COUNT][TERM_COUNT];
 
 const char* nonterm_names[] = {"Program", "Functions", "FunctionDef", "fnReturn", "Statements", "moreStmts", "Stmt", "ReturnStmt", "BreakStmt", "DeclarationStmt", "moreDeclarations", "mutMod", "Declaration", "moreTypes", "AssignStmtType2", "listTypes", "typeList", "moreList", "singleAssn", "multAssn", "moreAssn", "IDStmts", "IDStmts2", "Index", "moreIndex", "AssignStmtType1", "FunCall", "MethodCall", "FunCallStmt", "MethodStmt", "Type", "parameterList", "remainingList", "IfStmt", "ElseStmt", "IStmt", "OStmt", "value", "array", "IDList", "moreIds", "arithExpn", "moreTerms", "arithTerm", "moreFactors", "factor", "opLow", "relType", "opHigh", "boolExpn", "logicalOp", "relationalOp", "LoopStmt", "grid", "rows", "moreRows", "row", "moreNums", "boolean"};
 
-
 const int rules[RULE_COUNT][RULE_MAX_SYMBOLS] = {
     { Functions, MAIN, OPAREN, CPAREN, OBRACE, Statements, CBRACE, STOP },
     { FunctionDef, Functions, STOP },
@@ -405,8 +404,7 @@ void init_parse_table(){
     set_parse_table_cell(boolean, TRUE, 115);
 }
 
-int parse()
-{
+int parse() {
     struct stack* stack = stack_init();
     struct token token;
     int status = gettok(&token);
@@ -432,7 +430,6 @@ int parse()
         else if(stack_top(stack) < 100) {
             if(stack_top(stack) == token.type) {
                 printf("Popped term %s\n",token_names[stack_top(stack)] );   
-               // addLexeme(temptree,token);
                 stack_pop(stack);
                 memset(&token, 0, sizeof(token));
                 status = gettok(&token);  
