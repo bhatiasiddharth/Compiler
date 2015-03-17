@@ -8,7 +8,6 @@ enum non_terminals {Program = 100, Functions, FunctionDef, fnReturn, Statements,
 #define TERM_COUNT 52
 #define RULE_COUNT 116
 #define RULE_MAX_SYMBOLS 20
-#define STOP 210
 
 extern int parse_table[NONTERM_COUNT][TERM_COUNT];
 extern const char* nonterm_names[];

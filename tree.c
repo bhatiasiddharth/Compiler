@@ -1,7 +1,6 @@
 #include "parser.h"
 #include "tree.h"
 
-
 struct tree_node* tree_init(struct tree_node* parent, int symbol) {
 	struct tree_node* root = (struct tree_node*) malloc(sizeof(struct tree_node));
 	root->children_count = 0;
@@ -27,8 +26,6 @@ struct tree_node* tree_traverse(struct tree_node* root) {
 	}
 	return NULL;
 }
-
-
 
 void tree_print(struct tree_node* root) {
 	static int tabcount = 0;
