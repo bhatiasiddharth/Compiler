@@ -40,5 +40,5 @@ TODO
 	- Check `Reltype` and `if`
 - Check parse table again
 - Error handling in parser
-- Create javascript tool for trees
+- ~~Create javascript tool for trees~~
 - Use linked list in tree.c
