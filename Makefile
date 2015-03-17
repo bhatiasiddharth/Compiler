@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -w -g -std=c99
-DEPS = parser.o lexer.o stack.o tree.o
+CFLAGS = -g -std=c99
+DEPS = parser.o lexer.o stack.o tree.o ast.o
 
 parser: $(DEPS)
 	$(CC) $(CFLAGS) $(DEPS) -o $@

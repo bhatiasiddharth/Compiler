@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "stack.h"
 #include "tree.h"
+#include "ast.h"
 
 int parse_table[NONTERM_COUNT][TERM_COUNT];
 
@@ -125,7 +126,7 @@ const int rules[RULE_COUNT][RULE_MAX_SYMBOLS] = {
 	{ TRUE }
 };
 
-inline void set_parse_table_cell(int terminal, int token, int rule) {
+void set_parse_table_cell(int terminal, int token, int rule) {
 	parse_table[terminal - 100][token] = rule;
 }
 
@@ -419,6 +420,13 @@ int parse() {
         stack_print(stack);
         if(status == 0 && stack_top(stack) == DOLLAR) {
             printf("SUCCESSFUL\n");
+            //tree_print(root);
+            removeTerm(root);
+            remove_Chaining(root);
+            removeTerm(root);
+            remove_Chaining(root);
+            removeExtra(root);
+            arithmeticPass(root);
             tree_print(root);
             return 1;
         }
@@ -486,4 +494,5 @@ int parse() {
 int main(int argc, char *argv[]) {
 	init_parse_table();
 	parse();
+
 }

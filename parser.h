@@ -19,5 +19,5 @@ static inline void print_symbol(int symbol) {
 		printf("%s ", token_names[symbol]);
 }
 
-static inline void set_parse_table_cell(int terminal, int token, int rule);
+void set_parse_table_cell(int terminal, int token, int rule);
 #endif
