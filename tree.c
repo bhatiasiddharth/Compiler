@@ -14,20 +14,16 @@ struct tree_node* tree_init(struct tree_node* parent, int symbol) {
 }
 
 struct tree_node* tree_traverse(struct tree_node* root) {
-	if(root->symbol >= 100 && root->children_count == 0) return root;
+	if(root->symbol >= 100 && root->children_count == 0)
+		return root;
 
-	int i = 0;
-	struct tree_node* tr1;
-	while(i < root->children_count) {
-		if(root->children[i]->symbol < 100) {
-			i++;
+	struct tree_node* tnode;
+	for(int i = 0; i < root->children_count; i++) {
+		if(root->children[i]->symbol < 100)
 			continue;
-		}
-		tr1 = tree_traverse(root->children[i]);
-		if(tr1 != NULL)
-			return tr1;
-		else
-			i++;
+		tnode = tree_traverse(root->children[i]);
+		if(tnode != NULL)
+			return tnode;
 	}
 	return NULL;
 }
