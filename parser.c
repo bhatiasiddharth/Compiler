@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "stack.h"
+#include "tree.h"
 
 int parse_table[NONTERM_COUNT][TERM_COUNT];
 
@@ -412,11 +413,15 @@ int parse()
     
     stack_push(stack, DOLLAR);
     stack_push(stack, Program);
+
+    struct tree_node* root = tree_init(NULL, Program);
+    struct tree_node* temptree = root;
     
     while(status != -1){
         stack_print(stack);
         if(status == 0 && stack_top(stack) == DOLLAR) {
             printf("SUCCESSFUL\n");
+            tree_print(root);
             return 1;
         }
 
@@ -424,40 +429,40 @@ int parse()
             stack_pop(stack);
         }
 
-        else if(stack_top(stack) < 100)
-        {
+        else if(stack_top(stack) < 100) {
             if(stack_top(stack) == token.type) {
                 printf("Popped term %s\n",token_names[stack_top(stack)] );   
+               // addLexeme(temptree,token);
                 stack_pop(stack);
                 memset(&token, 0, sizeof(token));
                 status = gettok(&token);  
             }
-            else
-            {
+            else {
                 printf("Error in Terminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],token_names[stack_top(stack)],token.linenum,token.colnum);
                 return 0;
             }
         }
 
-        else    //Non terminal
-        {
+        else {
             int rule = parse_table[stack_top(stack) - 100][token.type];
             
             //printf("Rule %d\n",rule );
-            int i=0;
-            if(rule==-1)
-            {
+            int i = 0;
+            if(rule == -1) {
                printf("Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],nonterm_names[stack_top(stack)-100],token.linenum,token.colnum);
                 return 0;
             }
 
             printf("Popped nonterm %s\n",nonterm_names[stack_top(stack)-100] );   
             stack_pop(stack);
-            while(rules[rule][i]!=STOP)
+            temptree = tree_traverse(root);
+            while(rules[rule][i] != STOP) {
+                temptree->children[i]= tree_init(temptree, rules[rule][i]);
                 i++;
+            }
+            temptree->children_count=i;
             i--;
-            while(i!=-1)
-            {
+            while(i != -1) {
                 stack_push(stack, rules[rule][i]);
                 //printf("%d:%s ", rules[rule][i],token_names[rules[rule][i]]);
                 i--;
@@ -466,15 +471,16 @@ int parse()
             //printf("Top of stack %s\n",nonterm_names[stack_top(stack)-100]);
         }
     }
-    if(status==-1)
-    {
+    if(status == -1) {
 
-        if(token.type>=100)
+        if(token.type >= 100)
             printf("%s %d %d",nonterm_names[token.type-100],token.linenum,token.colnum);
 
       else
         printf("%s %d %d", token_names[token.type],token.linenum,token.colnum);
     }
+
+
 }
 
 
