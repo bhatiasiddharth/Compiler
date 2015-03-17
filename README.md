@@ -35,5 +35,10 @@ Instructions
 TODO
 =====
 
-- Use linked list in tree.c
 - Create driver.c with command line arguments to show output for each stage
+- Refactor AST algorithm to reduce passes
+	- Check `Reltype` and `if`
+- Check parse table again
+- Error handling in parser
+- Create javascript tool for trees
+- Use linked list in tree.c
