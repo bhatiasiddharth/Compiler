@@ -14,7 +14,7 @@ struct tree_node* removeTerm(struct tree_node* tr)
         if((v < 100)||(v>=100 && c==0) ) 
         { 
 
-           if( v<=USELESS_END ||(v >= Program && c==0))
+           if( v<=USELESS_END ||(v >= Program && c==0) || v==IF || v==ELSE || v==ELSEIF)
            {
             int j;
             for(j=i;j<newchildren_count-1;j++)
@@ -98,8 +98,7 @@ struct tree_node* removeExtra(struct tree_node* tr)
         free(ptr);
       }
           /*
-        //printf("here\n");
-        else if(v==20 && tr->children[newchildren_count-1]->symbol==135)//restifstmt
+        else if(v==IF)
         {
             tr->children[0]->children_count = n-2;
             int j;
@@ -110,20 +109,20 @@ struct tree_node* removeExtra(struct tree_node* tr)
             tr->children[1]=tr->children[n-1];
             newchildren_count = 2;
             tr->children[1]->symbol = tr->children[1]->children[0]->symbol;
-            tr->children[1]->tokeninfo = tr->children[1]->children[0]->tokeninfo; 
+            
             tr->children[1]->children_count--;
             for(j=0;j<tr->children_count;j++)
             {
+              printf("%d %d\n",j,tr->children_count);
                 tr->children[1]->children[j]=tr->children[1]->children[j+1];
             }
             i=0;
-            flag = 1;
         }
-        else if( v==20 && tr->children[newchildren_count-1]->symbol != 135 && flag==0)//if elsepart not present // tr-> istmt-133
+        /*
+        else if( v==IF )//if elsepart not present // tr-> istmt-133
         {
             tr->children_count -= 1;
             tr->symbol = tr->children[0]->symbol;
-            tr->tokeninfo = tr->children[0]->tokeninfo;
             int j;
             for(j=1;j<=n-1;j++)
             {

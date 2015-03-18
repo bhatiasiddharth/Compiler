@@ -1,4 +1,5 @@
 #ifndef _STACK_H
+#include "parser.h"
 struct stack {
 	struct stack_node* top;
 };

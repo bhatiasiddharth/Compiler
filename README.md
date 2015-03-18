@@ -35,10 +35,12 @@ Instructions
 TODO
 =====
 
+- Put Token in tree
 - Create driver.c with command line arguments to show output for each stage
 - Refactor AST algorithm to reduce passes
-	- Check `Reltype` and `if`
+	- Check `Idlist`
 - Check parse table again
-- Error handling in parser
-- ~~Create javascript tool for trees~~
 - Use linked list in tree.c
+- ~~Error handling in parser:Not required~~
+- ~~Create javascript tool for trees~~
+- ~~Javascript calling from Makefile~~

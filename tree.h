@@ -1,5 +1,6 @@
 #ifndef _TREE_H
 #define _TREE_H
+#include "parser.h"
 
 struct tree_node {
    int symbol;

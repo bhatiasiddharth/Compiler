@@ -416,18 +416,25 @@ int parse() {
     struct tree_node* root = tree_init(NULL, Program);
     struct tree_node* temptree = root;
     
+
     while(status != -1){
-        stack_print(stack);
+        //stack_print(stack,fp);
         if(status == 0 && stack_top(stack) == DOLLAR) {
-            printf("SUCCESSFUL\n");
-            //tree_print(root);
+            //printf("SUCCESSFUL\n");
+            int fd1=open("parse_tree.txt",O_CREAT);
+            dup2(fd1,1);
+            tree_print(root);
             removeTerm(root);
             remove_Chaining(root);
             removeTerm(root);
             remove_Chaining(root);
             removeExtra(root);
             arithmeticPass(root);
+            close(fd1);
+            int fd2=open("ast.txt",O_CREAT);
+            dup2(fd2,1);
             tree_print(root);
+            close(fd2);
             return 1;
         }
 
@@ -437,7 +444,7 @@ int parse() {
 
         else if(stack_top(stack) < 100) {
             if(stack_top(stack) == token.type) {
-                printf("Popped term %s\n",token_names[stack_top(stack)] );   
+                //printf("Popped term %s\n",token_names[stack_top(stack)] );   
                 stack_pop(stack);
                 memset(&token, 0, sizeof(token));
                 status = gettok(&token);  
@@ -458,7 +465,7 @@ int parse() {
                 return 0;
             }
 
-            printf("Popped nonterm %s\n",nonterm_names[stack_top(stack)-100] );   
+            //printf("Popped nonterm %s\n",nonterm_names[stack_top(stack)-100] );   
             stack_pop(stack);
             temptree = tree_traverse(root);
 
@@ -486,6 +493,7 @@ int parse() {
       else
         printf("%s %d %d", token_names[token.type],token.linenum,token.colnum);
     }
+
 
 
 }
