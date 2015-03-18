@@ -6,6 +6,7 @@ fn add(x:i32, y:i32) -> i32 {
 
 fn add(x:string, y:string) -> string {
    let mut ans = 5;
+   //let boolean x=true;
    ans = x + y;
    return ans;
 }
@@ -14,9 +15,16 @@ main() {
 	// Comments
 	// Comments2
 	let mut str1 = "radsar";
-	if ((str1 == str1[5]) OR (str1== str.reverse(5,"abc",6,7,9))) {
+	if ((str1 == str1[5]) OR (str1 <= str.reverse(5,"abc",6,7,9))) {
 	x=5+6;
 		print("Yes");
 	}
 	else {print("bye");}
+	while(x < 5) {
+   print(x);
+   x = x+1; 
+}
+
+(x,y,z) = (1,2,3);
+
 }
