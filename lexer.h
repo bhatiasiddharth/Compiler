@@ -1,9 +1,5 @@
 #ifndef _LEXER_H
 #define _LEXER_H
-#include <unistd.h>
-#include <sys/types.h> 
-#include <sys/stat.h> 
-#include <fcntl.h> 
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
