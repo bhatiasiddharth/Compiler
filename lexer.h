@@ -16,6 +16,11 @@ enum token_type {DOLLAR, EPSILON, RARROW, OSQUARE, CSQUARE, OPAREN, CPAREN, OBRA
 #define OP_BEGIN LE
 #define OP_END GT
 
+#define NONTERM_COUNT 59
+#define TERM_COUNT 52
+#define RULE_COUNT 116
+#define RULE_MAX_SYMBOLS 20
+
 struct token {
   unsigned int linenum, colnum;
   enum token_type type;
@@ -27,6 +32,6 @@ struct token {
   } value;
 };
 
-extern int gettok(struct token* token);
+extern int gettok(FILE *fp, struct token* token);
 extern const char* token_names[];
 #endif

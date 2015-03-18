@@ -22,7 +22,7 @@ void build_lexeme(char* str, char c) {
   strcat(str, ch);
 }
 
-int gettok(struct token* token) {
+int gettok(FILE *fp, struct token* token) {
   int i;
   static int current_char = ' ';
   static int linenum = 1, colnum = 1;
@@ -36,7 +36,7 @@ int gettok(struct token* token) {
     }else if(current_char == ' ') {
       colnum++;
     }
-    current_char = getchar();
+    current_char = getc(fp);
   }
 
   token->linenum = linenum;
@@ -44,7 +44,7 @@ int gettok(struct token* token) {
   if (isalpha(current_char)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
     token->type = ID;
     build_lexeme(token->lexeme, current_char);
-    while (isalnum((current_char = getchar()))){
+    while (isalnum((current_char = getc(fp)))){
       build_lexeme(token->lexeme, current_char);
     }
 
@@ -61,7 +61,7 @@ int gettok(struct token* token) {
     do {
       if(current_char == '.') token->type = FLOAT;
       build_lexeme(token->lexeme, current_char);
-      current_char = getchar();
+      current_char = getc(fp);
     } while (isdigit(current_char) || (current_char == '.' && token->type == NUM));
 
     if(token->type == NUM)
@@ -74,11 +74,11 @@ int gettok(struct token* token) {
   }
 
   if (current_char == '/') {
-    if((current_char = getchar()) == '/') {
+    if((current_char = getc(fp)) == '/') {
       token->type = COMMENT;
       // Comment until end of line.
       do {
-        current_char = getchar();
+        current_char = getc(fp);
       }while (current_char != EOF && current_char != '\n' && current_char != '\r');
       return 1;
     }else {
@@ -89,10 +89,10 @@ int gettok(struct token* token) {
  }
 
   if (current_char == '=') {
-    if((current_char = getchar()) == '=') {
+    if((current_char = getc(fp)) == '=') {
       token->type = EQ;
       strcpy(token->lexeme, "==");
-      current_char = getchar();
+      current_char = getc(fp);
       colnum += 2;
       return 1;
   }else {
@@ -104,10 +104,10 @@ int gettok(struct token* token) {
  }
 
   if (current_char == '-') {
-    if((current_char = getchar()) == '>'){
+    if((current_char = getc(fp)) == '>'){
       token->type = RARROW;
       strcpy(token->lexeme, "->");
-      current_char = getchar();
+      current_char = getc(fp);
       colnum += 2;
       return 1;
   }else {
@@ -119,16 +119,16 @@ int gettok(struct token* token) {
 }
    if (current_char == '<') {
 
-    if((current_char = getchar()) == '=') {
+    if((current_char = getc(fp)) == '=') {
       token->type = LE;
       strcpy(token->lexeme, "<=");
-      current_char = getchar();
+      current_char = getc(fp);
       colnum += 2;
       return 1;
   }else if(current_char == '>'){
       token->type = NE;
       strcpy(token->lexeme, "<>");
-      current_char = getchar();
+      current_char = getc(fp);
       colnum += 2;
       return 1;
    }else{
@@ -140,10 +140,10 @@ int gettok(struct token* token) {
 }
    if (current_char == '>') {
 
-    if((current_char = getchar()) == '=') {
+    if((current_char = getc(fp)) == '=') {
       token->type = GE;
       strcpy(token->lexeme, ">=");
-      current_char = getchar();
+      current_char = getc(fp);
       colnum += 2;
       return 1;
   }else{
@@ -155,27 +155,27 @@ int gettok(struct token* token) {
 }
   if (current_char == '"') {
     token->type = STRL;
-    while (isalnum((current_char = getchar()))){
+    while (isalnum((current_char = getc(fp)))){
       build_lexeme(token->lexeme, current_char);
     }
     
     if(current_char == '"'){
-      current_char = getchar();
+      current_char = getc(fp);
       colnum += strlen(token->lexeme) + 2;
       return 1;
     }else {
-      current_char = getchar();
+      current_char = getc(fp);
       return -1;
     }
   }
 
   if (current_char == '\'') {
     token->type = CHARL;
-    isalnum(current_char = getchar());
+    isalnum(current_char = getc(fp));
 
     build_lexeme(token->lexeme, current_char);
     token->value.ch = current_char;
-    if((current_char = getchar())== '\''){
+    if((current_char = getc(fp))== '\''){
       colnum += strlen(token->lexeme) + 2;
       return 1;
     }else{
@@ -187,7 +187,7 @@ int gettok(struct token* token) {
     if(current_char == single_token_map[i][0]){          
       token->type = single_token_map[i][1];
       build_lexeme(token->lexeme, current_char);
-      current_char = getchar();
+      current_char = getc(fp);
       colnum += 1;      
       return 1;
     }

@@ -1,13 +1,13 @@
 CC = gcc
 CFLAGS = -g -std=c99
-DEPS = parser.o lexer.o stack.o tree.o ast.o
+DEPS = parser.o lexer.o stack.o tree.o ast.o compiler.o
 
-tree: parser
-	./parser < samples/01-sum.co
-	node tree-printer/main.js parse_tree.txt ast.txt
-	open -a "Google Chrome" parse_tree.svg ast.svg
+run: compiler
+	./compiler < samples/01-sum.co > parse_tree.txt
+	node tree-printer/main.js parse_tree.txt
+	open -a "Google Chrome" parse_tree.svg
 
-parser: $(DEPS)
+compiler: $(DEPS)
 	$(CC) $(CFLAGS) $(DEPS) -o $@
 
 %.o: %.c %.h

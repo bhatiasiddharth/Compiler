@@ -163,3 +163,13 @@ struct tree_node* arithmeticPass(struct tree_node* tr)
         }
     return tr;
 }
+
+struct tree_node* create_ast(struct tree_node* root) {
+	removeTerm(root);
+    remove_Chaining(root);
+    removeTerm(root);
+    remove_Chaining(root);
+    removeExtra(root);
+
+    return root;
+}

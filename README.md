@@ -37,9 +37,11 @@ TODO
 
 - Put Token in tree
 - Create driver.c with command line arguments to show output for each stage
+- Use twin buffer for lexer
 - Refactor AST algorithm to reduce passes
 	- Check `Idlist`
 - Check parse table again
+- Refactor parser error messages.
 - Use linked list in tree.c
 - ~~Error handling in parser:Not required~~
 - ~~Create javascript tool for trees~~

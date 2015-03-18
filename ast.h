@@ -11,4 +11,5 @@ extern struct tree_node* removeExtra(struct tree_node* tr);
 
 extern struct tree_node* arithmeticPass(struct tree_node* tr);
 
+extern struct tree_node* create_ast(struct tree_node* tr);
 #endif
