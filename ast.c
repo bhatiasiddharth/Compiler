@@ -117,7 +117,7 @@ struct tree_node* removeExtra(struct tree_node* tr)
                 tr->children[1]->children[j]=tr->children[1]->children[j+1];
             }
             i=0;
-        }
+        }*/
         /*
         else if( v==IF )//if elsepart not present // tr-> istmt-133
         {

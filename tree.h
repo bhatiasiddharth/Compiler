@@ -11,6 +11,6 @@ struct tree_node {
 
 extern struct tree_node* tree_init(struct tree_node* parent, int symbol);
 extern struct tree_node* tree_traverse(struct tree_node* tnode);
-extern void tree_print(struct tree_node* tnode);
+extern void tree_print(struct tree_node* tnode, FILE* fp, int flag);
 
 #endif

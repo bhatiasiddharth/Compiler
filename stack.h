@@ -28,6 +28,6 @@ extern void stack_push(struct stack* stack, int value);
 extern int stack_pop(struct stack* stack);
 
 /* Print elements in stack */
-extern void stack_print(struct stack* stack);
+extern void stack_print(struct stack* stack, FILE* fp);
 
 #endif

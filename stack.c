@@ -36,11 +36,11 @@ int stack_empty(struct stack* stack) {
 }
 
 
-void stack_print(struct stack* stack) {
+void stack_print(struct stack* stack, FILE* fp) {
   printf("Display: ");
   struct stack_node* temp = stack->top;
   while(temp != NULL){
-    print_symbol(temp->value);
+    print_symbol(fp, temp->value);
     temp = temp->next;
   }
 

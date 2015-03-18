@@ -27,20 +27,21 @@ struct tree_node* tree_traverse(struct tree_node* root) {
 	return NULL;
 }
 
-void tree_print(struct tree_node* root) {
+void tree_print(struct tree_node* root, FILE* fp, int reset) {
 	static int tabcount = 0;
+	if(reset) tabcount = 0;
 	if(root == NULL) return;
 
 	int temptab = tabcount;
 	while(temptab--)
-		printf("\t");
+		fprintf(fp, "\t");
 
-	print_symbol(root->symbol);
-	printf("\n");
+	print_symbol(fp, root->symbol);
+	fprintf(fp, "\n");
 
 	for(int i = 0; i < root->children_count; i++) {
 		tabcount++;
-		tree_print(root->children[i]);
+		tree_print(root->children[i], fp, 0);
 	}
 	tabcount--;
 	return;

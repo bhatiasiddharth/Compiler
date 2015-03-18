@@ -12,11 +12,11 @@ enum non_terminals {Program = 100, Functions, FunctionDef, fnReturn, Statements,
 extern int parse_table[NONTERM_COUNT][TERM_COUNT];
 extern const char* nonterm_names[];
 
-static inline void print_symbol(int symbol) {
+static inline void print_symbol(FILE* fp, int symbol) {
 	if(symbol >= 100)
-		printf("%s ", nonterm_names[symbol - 100]);
+		fprintf(fp, "%s ", nonterm_names[symbol - 100]);
 	else
-		printf("%s ", token_names[symbol]);
+		fprintf(fp, "%s ", token_names[symbol]);
 }
 
 void set_parse_table_cell(int terminal, int token, int rule);

@@ -421,20 +421,18 @@ int parse() {
         //stack_print(stack,fp);
         if(status == 0 && stack_top(stack) == DOLLAR) {
             //printf("SUCCESSFUL\n");
-            int fd1=open("parse_tree.txt",O_CREAT);
-            dup2(fd1,1);
-            tree_print(root);
+            FILE* fp1 = fopen("parse_tree.txt", "w+");
+            tree_print(root, fp1, 1);
             removeTerm(root);
             remove_Chaining(root);
             removeTerm(root);
             remove_Chaining(root);
             removeExtra(root);
             arithmeticPass(root);
-            close(fd1);
-            int fd2=open("ast.txt",O_CREAT);
-            dup2(fd2,1);
-            tree_print(root);
-            close(fd2);
+            FILE* fp2 = fopen("ast.txt", "w+");
+            tree_print(root, fp2, 1);
+            fclose(fp1);
+            fclose(fp2);
             return 1;
         }
 
