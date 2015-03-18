@@ -41,6 +41,9 @@ TODO
 	- Check `Idlist`
 - Check parse table again
 - Use linked list in tree.c
+- Error Handling overall
+- Handle float, boolean, grid
+
 - ~~Error handling in parser:Not required~~
 - ~~Create javascript tool for trees~~
 - ~~Javascript calling from Makefile~~

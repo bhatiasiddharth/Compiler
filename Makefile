@@ -3,9 +3,9 @@ CFLAGS = -g -std=c99
 DEPS = parser.o lexer.o stack.o tree.o ast.o
 
 tree: parser
-	./parser < samples/01-sum.co
+	./parser < samples/07-try.co
 	node tree-printer/main.js parse_tree.txt ast.txt
-	open -a "Google Chrome" parse_tree.svg ast.svg
+	google-chrome parse_tree.svg ast.svg
 
 parser: $(DEPS)
 	$(CC) $(CFLAGS) $(DEPS) -o $@
