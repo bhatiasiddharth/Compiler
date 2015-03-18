@@ -4,7 +4,6 @@ struct tree_node* removeTerm(struct tree_node* tr)
 {
      int i=0;
      int newchildren_count = tr->children_count;
-     i=0;
 
      while(i < newchildren_count)
      {  

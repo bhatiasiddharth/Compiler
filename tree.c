@@ -46,3 +46,9 @@ void tree_print(struct tree_node* root, FILE* fp, int reset) {
 	tabcount--;
 	return;
 }
+
+void tree_write(struct tree_node* root, char* filename) {
+	FILE *fp = fopen(filename, "w+");
+	tree_print(root, fp, 1);
+	fclose(fp);
+}

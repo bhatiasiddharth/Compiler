@@ -193,7 +193,7 @@ int gettok(FILE *fp, struct token* token) {
     }
   }
     
-  if(!feof(stdin)){
+  if(!feof(fp)){
     // Error - Invalid token
     printf("(%d, %d) Error - Invalid token\n", linenum, colnum);
     return -1;

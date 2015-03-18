@@ -15,7 +15,6 @@ static inline void print_symbol(FILE* fp, int symbol) {
 		fprintf(fp, "%s ", token_names[symbol]);
 }
 
-void set_parse_table_cell(int terminal, int token, int rule);
-
+extern void init_parse_table();
 extern struct tree_node* create_parsetree();
 #endif
