@@ -37,7 +37,7 @@ struct tree_node* removeTerm(struct tree_node* tr)
 
 struct tree_node* remove_Chaining(struct tree_node* tr)
 {
-    if(tr->children_count ==1 && tr->symbol>=100)
+    if(tr->children_count ==1 && tr->symbol>=100 && tr->symbol!=MethodCall)
     {
         struct tree_node* ptr = tr->children[0];
 
@@ -68,6 +68,42 @@ struct tree_node* remove_Chaining(struct tree_node* tr)
     return tr;
 }
 
+struct tree_node* removeNonTerm(struct tree_node* tr) 
+{
+     int children_count = tr->children_count;
+     int k=children_count-1;
+     if(children_count>0) //non leaf
+     {
+     	int symbol = tr->children[k]->symbol;
+
+	     if(symbol==multAssn || symbol==moreStmts || symbol==moreRows || symbol==moreNums || symbol==typeList  )
+	     {
+	     	int j;
+	     	int newcount=k;
+	     	struct tree_node* temp=tr->children[k];
+	     	int grandchildren=tr->children[children_count-1]->children_count;
+	     	for(j=0;j<grandchildren;j++)
+	        {
+	            tr->children[newcount] = temp->children[j];
+	            newcount++;
+	        }
+	        tr->children_count=newcount;
+	        removeNonTerm(tr);
+	        
+	     }
+
+	     else
+		{
+			for(int i=0;i<children_count;i++)
+			tr->children[i] = removeNonTerm(tr->children[i]);
+		
+		}
+     }
+     
+
+
+  return tr;
+}
 
 
 struct tree_node* removeExtra(struct tree_node* tr)
@@ -96,40 +132,7 @@ struct tree_node* removeExtra(struct tree_node* tr)
         newchildren_count -= 1;
         free(ptr);
       }
-          /*
-        else if(v==IF)
-        {
-            tr->children[0]->children_count = n-2;
-            int j;
-            for(j=1;j<=n-2;j++)
-            {
-                tr->children[0]->children[j-1] = tr->children[j];
-            }
-            tr->children[1]=tr->children[n-1];
-            newchildren_count = 2;
-            tr->children[1]->symbol = tr->children[1]->children[0]->symbol;
-            
-            tr->children[1]->children_count--;
-            for(j=0;j<tr->children_count;j++)
-            {
-              printf("%d %d\n",j,tr->children_count);
-                tr->children[1]->children[j]=tr->children[1]->children[j+1];
-            }
-            i=0;
-        }*/
-        /*
-        else if( v==IF )//if elsepart not present // tr-> istmt-133
-        {
-            tr->children_count -= 1;
-            tr->symbol = tr->children[0]->symbol;
-            int j;
-            for(j=1;j<=n-1;j++)
-            {
-                tr->children[j-1] = tr->children[j];
-            }
-            newchildren_count-=1;
-        }
-        */
+
       else 
       {
         if(v >= 100) removeExtra(tr->children[i]);
@@ -169,6 +172,8 @@ struct tree_node* create_ast(struct tree_node* root) {
     removeTerm(root);
     remove_Chaining(root);
     removeExtra(root);
+    removeNonTerm(root);
+    arithmeticPass(root);
 
     return root;
 }
