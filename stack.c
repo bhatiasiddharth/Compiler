@@ -8,26 +8,28 @@ struct stack* stack_init() {
    return stack;
 }
 
-void stack_push(struct stack* stack, int item) {
+void stack_push(struct stack* stack, void* item) {
    struct stack_node* new_node = (struct stack_node*) malloc(sizeof(struct stack_node));
+   // make sure item was allocated on heap
    new_node->value = item;
    new_node->next = stack->top;
    stack->top = new_node;
 }
 
-int stack_pop(struct stack* stack) {
+void* stack_pop(struct stack* stack) {
    if(stack->top == NULL){
       printf("Cannot pop, stack is empty.");
-      return -1;
+      return NULL;
    }
    struct stack_node* temp = stack->top;
-   int item = temp->value;
+   void* item = temp->value;
    stack->top = temp->next;
+   free(item);
    free(temp);
    return item;
 }
 
-int stack_top(struct stack* stack) {
+void* stack_top(struct stack* stack) {
    return stack->top->value;
 }
 
@@ -36,10 +38,10 @@ int stack_empty(struct stack* stack) {
 }
 
 void stack_print(struct stack* stack, FILE* fp) {
-  printf("Display: ");
+  //printf("Display: ");
   struct stack_node* temp = stack->top;
   while(temp != NULL){
-    print_symbol(fp, temp->value);
+    //print_symbol(fp, *(int *)(temp->value));
     temp = temp->next;
   }
 

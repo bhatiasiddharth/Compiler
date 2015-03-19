@@ -1,6 +1,6 @@
 #include "lexer.h"
 
-const char* token_names[] = {"DOLLAR", "EPSILON", "RARROW", "OSQUARE", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COLON", "COMMA", "DOT", "COMMENT", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE ", "NE", "ASSIGNOP", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "RETURN", "CHAR", "I32", "F32", "BOOL", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT", "TRUE", "FALSE", "MUT"};
+const char* token_names[] = {"DOLLAR", "EPSILON", "RARROW", "OSQUARE", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COLON", "COMMA", "DOT", "COMMENT", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE ", "NE", "ASSIGNOP", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "TRUE", "FALSE", "RETURN", "CHAR", "I32", "F32", "BOOL", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT", "MUT"};
 
 int single_token_map[][2] = {
   { '[', OSQUARE },
@@ -20,6 +20,26 @@ int single_token_map[][2] = {
 void build_lexeme(char* str, char c) {
   char ch[2] = {c, 0};
   strcat(str, ch);
+}
+
+void print_value(FILE* fp, int symbol, union value value){
+    if(symbol == NUM) {
+        fprintf(fp, "%d ", value.inum);
+    }else if(symbol == FLOAT) {
+        fprintf(fp, "%f ", value.fnum);
+    }else if(symbol == CHARL) {
+        fprintf(fp, "%c ", value.ch);
+    }else if(symbol == TRUE || symbol == FALSE) {
+        fprintf(fp, "%d ", value.bool);
+    }else if(symbol == STRL) {
+        fprintf(fp, "%s ", value.string);
+    }else {
+        fprintf(fp, "Empty ");
+    }
+}
+
+int token_hasvalue(int symbol) {
+  return (symbol == NUM || symbol == FLOAT || symbol == STRL || symbol == BOOL || symbol == CHARL);
 }
 
 int gettok(FILE *fp, struct token* token) {
@@ -52,6 +72,16 @@ int gettok(FILE *fp, struct token* token) {
       if(strcasecmp(token->lexeme, token_names[i]) == 0)
         token->type = i;
     }
+
+    if(strcasecmp(token->lexeme, "true") == 0) {
+      token->type = TRUE;
+      token->value.bool = 1;
+    }
+
+    if(strcasecmp(token->lexeme, "false") == 0) {
+      token->type = FALSE;
+      token->value.bool = 0;
+    }
     colnum += strlen(token->lexeme);
     return 1;
   }
@@ -65,9 +95,9 @@ int gettok(FILE *fp, struct token* token) {
     } while (isdigit(current_char) || (current_char == '.' && token->type == NUM));
 
     if(token->type == NUM)
-      token->value.inum = 0;
+      token->value.inum = atoi(token->lexeme);
     else
-      token->value.fnum = 0.0;
+      token->value.fnum = atof(token->lexeme);
 
     colnum += strlen(token->lexeme);
     return 1;
@@ -155,10 +185,11 @@ int gettok(FILE *fp, struct token* token) {
 }
   if (current_char == '"') {
     token->type = STRL;
-    while (isalnum((current_char = getc(fp)))){
+    while ((current_char = getc(fp)) && (isalnum(current_char) || isspace(current_char))) {
       build_lexeme(token->lexeme, current_char);
     }
     
+    strcpy(token->value.string, token->lexeme);
     if(current_char == '"'){
       current_char = getc(fp);
       colnum += strlen(token->lexeme) + 2;
@@ -171,11 +202,12 @@ int gettok(FILE *fp, struct token* token) {
 
   if (current_char == '\'') {
     token->type = CHARL;
-    isalnum(current_char = getc(fp));
+    current_char = getc(fp);
 
     build_lexeme(token->lexeme, current_char);
     token->value.ch = current_char;
     if((current_char = getc(fp))== '\''){
+      current_char = getc(fp);
       colnum += strlen(token->lexeme) + 2;
       return 1;
     }else{

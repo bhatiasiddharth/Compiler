@@ -8,13 +8,8 @@ enum non_terminals {Program = 100, Functions, FunctionDef, fnReturn, Statements,
 extern int parse_table[NONTERM_COUNT][TERM_COUNT];
 extern const char* nonterm_names[];
 
-static inline void print_symbol(FILE* fp, int symbol) {
-	if(symbol >= 100)
-		fprintf(fp, "%s ", nonterm_names[symbol - 100]);
-	else
-		fprintf(fp, "%s ", token_names[symbol]);
-}
-
 extern void init_parse_table();
 extern struct tree_node* create_parsetree();
+extern void print_symbol(FILE* fp, int symbol, union value value);
+
 #endif

@@ -5,7 +5,7 @@ struct stack {
 };
 
 struct stack_node {
-	int value;
+	void* value;
 	struct stack_node* next;
 };
 
@@ -13,7 +13,7 @@ struct stack_node {
 extern struct stack* stack_init();
 
 /* Top element of the stack */
-extern int stack_top(struct stack* stack);
+extern void* stack_top(struct stack* stack);
 
 /* Check if stack is empty */
 extern int stack_empty(struct stack* stack);
@@ -22,10 +22,10 @@ extern int stack_empty(struct stack* stack);
 //extern int stack_dispose(struct stack* stack);
 
 /* Push node to stack */
-extern void stack_push(struct stack* stack, int value);
+extern void stack_push(struct stack* stack, void* value);
 
 /* Pop node from stack */
-extern int stack_pop(struct stack* stack);
+extern void* stack_pop(struct stack* stack);
 
 /* Print elements in stack */
 extern void stack_print(struct stack* stack, FILE* fp);

@@ -2,8 +2,9 @@ CC = gcc
 CFLAGS = -g -std=c99
 DEPS = parser.o lexer.o stack.o tree.o ast.o compiler.o
 
+SAMPLE = samples/03-functions
 run: compiler
-	./compiler samples/01-sum.co && node tree-printer/main.js samples/01-sum-parse.tree samples/01-sum-syntax.tree && open -a "Google Chrome" samples/01-sum-parse.svg samples/01-sum-syntax.svg
+	./compiler $(SAMPLE).co && node tree-printer/main.js $(SAMPLE)-parse.tree $(SAMPLE)-syntax.tree && open -a "Google Chrome" $(SAMPLE)-parse.svg $(SAMPLE)-syntax.svg
 
 compiler: $(DEPS)
 	$(CC) $(CFLAGS) $(DEPS) -o $@

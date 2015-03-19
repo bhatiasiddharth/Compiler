@@ -1,4 +1,7 @@
 .DS_Store
 *.out
+*.o
+*.svg
+*.tree
 *.dSYM
 tree-printer/node_modules

@@ -403,43 +403,64 @@ void init_parse_table(){
     set_parse_table_cell(boolean, TRUE, 115);
 }
 
+static void stack_pushval(struct stack* stack, int value) {
+    int* value_ptr = (int *) malloc(sizeof(int));
+    *value_ptr = value;
+    return stack_push(stack, value_ptr);
+}
+static int stack_topval(struct stack* stack) {
+    int* top = stack_top(stack);
+    return *top;
+}
+
+void print_symbol(FILE* fp, int symbol, union value value) {
+  if(symbol >= 100)
+    fprintf(fp, "%s ", nonterm_names[symbol - 100]);
+  else{
+    if(token_hasvalue(symbol))
+      print_value(fp, symbol, value);
+    else
+      fprintf(fp, "%s ", token_names[symbol]);
+  }
+}
+
 struct tree_node* create_parsetree(FILE* fp) {
 	struct stack* stack = stack_init();
 	struct token token;
 	int status = gettok(fp, &token);
+    union value zero_value;
+	stack_pushval(stack, DOLLAR);
+	stack_pushval(stack, Program);
 
-	stack_push(stack, DOLLAR);
-	stack_push(stack, Program);
-
-	struct tree_node* root = tree_init(NULL, Program);
+	struct tree_node* root = tree_init(NULL, Program, zero_value);
 	struct tree_node* temptree = root;
 
 	while(status != -1){
 		//stack_print(stack,fp);
 
 		// return root node when succesful
-		if(status == 0 && stack_top(stack) == DOLLAR) {
+		if(status == 0 && stack_topval(stack) == DOLLAR) {
 			return root;
 		}
 
-		if(stack_top(stack) == EPSILON) {
+		if(stack_topval(stack) == EPSILON) {
 			stack_pop(stack);
-		}else if(stack_top(stack) < 100) {
-			if(stack_top(stack) == token.type) {
+		}else if(stack_topval(stack) < 100) {
+			if(stack_topval(stack) == token.type) {
 				stack_pop(stack);
 				status = gettok(fp, &token);  
 			}
 			else {
-				printf("Error in Terminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],token_names[stack_top(stack)],token.linenum,token.colnum);
-				return 0;
+				printf("Error in Terminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],token_names[stack_topval(stack)],token.linenum,token.colnum);
+				return NULL;
 			}
 		} else {
-			int rule = parse_table[stack_top(stack) - 100][token.type];
+			int rule = parse_table[stack_topval(stack) - 100][token.type];
 
 			int i = 0;
 			if(rule == -1) {
-				printf("Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],nonterm_names[stack_top(stack)-100],token.linenum,token.colnum);
-				return 0;
+				printf("Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],nonterm_names[stack_topval(stack)-100],token.linenum,token.colnum);
+				return NULL;
 			}
 
 			stack_pop(stack);
@@ -447,7 +468,10 @@ struct tree_node* create_parsetree(FILE* fp) {
 
 			// End of Rule is marked by zero, since no rule has DOLLAR on RHS
 			while(rules[rule][i] != 0) {
-				temptree->children[i]= tree_init(temptree, rules[rule][i]);
+				temptree->children[i] = tree_init(temptree, rules[rule][i], zero_value);
+                // if(rules[rule][i] < 100 && token_hasvalue(rules[rule][i])) {
+                //     temptree->children[i]->value = token.value;
+                // }
 				i++;
 			}
 			
@@ -455,7 +479,7 @@ struct tree_node* create_parsetree(FILE* fp) {
 			i--;
 			
 			while(i != -1) {
-				stack_push(stack, rules[rule][i]);
+				stack_pushval(stack, rules[rule][i]);
 				i--;
 			}
 		}
@@ -466,4 +490,5 @@ struct tree_node* create_parsetree(FILE* fp) {
 		else
 			printf("%s %d %d", token_names[token.type],token.linenum,token.colnum);
 	}
+    return NULL;
 }

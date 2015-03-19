@@ -1,11 +1,12 @@
 #include "parser.h"
 #include "tree.h"
 
-struct tree_node* tree_init(struct tree_node* parent, int symbol) {
+struct tree_node* tree_init(struct tree_node* parent, int symbol, union value value) {
 	struct tree_node* root = (struct tree_node*) malloc(sizeof(struct tree_node));
 	root->children_count = 0;
 	root->parent = parent;
 	root->symbol = symbol;
+	root->value = value;
 
 	for(int i = 0; i < RULE_MAX_SYMBOLS; i++)
 		root->children[i] = NULL;
@@ -36,7 +37,7 @@ void tree_print(struct tree_node* root, FILE* fp, int reset) {
 	while(temptab--)
 		fprintf(fp, "\t");
 
-	print_symbol(fp, root->symbol);
+	print_symbol(fp, root->symbol, root->value);
 	fprintf(fp, "\n");
 
 	for(int i = 0; i < root->children_count; i++) {
