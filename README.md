@@ -35,17 +35,15 @@ Instructions
 TODO
 =====
 
-- Put Token in tree
-- Create driver.c with command line arguments to show output for each stage
 - Use twin buffer for lexer
 - Refactor AST algorithm to reduce passes
-	- Check `Idlist`
 - Check parse table again
-- Refactor parser error messages.
 - Use linked list in tree.c
 - Error Handling overall
-- Handle float, boolean, grid
+- Handle float, boolean, grid in grammar
 
+- ~~Put Token in tree~~
+- ~~Create driver.c with command line arguments to show output for each stage~~
 - ~~Error handling in parser:Not required~~
 - ~~Create javascript tool for trees~~
 - ~~Javascript calling from Makefile~~
