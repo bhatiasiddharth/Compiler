@@ -469,9 +469,11 @@ struct tree_node* create_parsetree(FILE* fp) {
 			// End of Rule is marked by zero, since no rule has DOLLAR on RHS
 			while(rules[rule][i] != 0) {
 				temptree->children[i] = tree_init(temptree, rules[rule][i], zero_value);
-                // if(rules[rule][i] < 100 && token_hasvalue(rules[rule][i])) {
-                //     temptree->children[i]->value = token.value;
-                // }
+                 if(token_hasvalue(rules[rule][i]) && rules[rule][i]==token.type) {
+
+                     temptree->children[i]->value = token.value;
+                     print_symbol(stdout,token.type,temptree->children[i]->value);
+                 }
 				i++;
 			}
 			
