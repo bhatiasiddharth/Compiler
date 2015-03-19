@@ -472,7 +472,6 @@ struct tree_node* create_parsetree(FILE* fp) {
                  if(token_hasvalue(rules[rule][i]) && rules[rule][i]==token.type) {
 
                      temptree->children[i]->value = token.value;
-                     print_symbol(stdout,token.type,temptree->children[i]->value);
                  }
 				i++;
 			}

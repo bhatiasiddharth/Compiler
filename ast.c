@@ -41,6 +41,7 @@ struct tree_node* remove_Chaining(struct tree_node* tr)
     {
         struct tree_node* ptr = tr->children[0];
 
+        tr->value = ptr->value;
         tr->symbol = ptr->symbol;
         tr->children_count = ptr->children_count;
         int i =0;
