@@ -34,10 +34,28 @@ void st_fill(struct tree_node* tr) {
 
         temp = assignop->children[0];
         if (temp->symbol == ID) {
-            if(assignop->children_count == 2)
-            type = get_type(assignop->children[1]->symbol);
-            insert_var(temp->value.string, GLOBAL, tables->size++, type, assignop->children[1]->value);
-        }else {
+            if(assignop->children[1]->symbol != array){
+                // single assignment
+                type = get_type(assignop->children[1]->symbol);
+                insert_var(temp->value.string, GLOBAL, tables->size++, type, assignop->children[1]->value);
+            }else {
+                // array init
+                temp = assignop->children[1];
+                int size = temp->children_count;
+                union value value = (union value*) malloc(sizeof(union value) * (size - 1));
+                for (int i = 1; i < size; ++i)
+                {
+                    type = get_type(temp->children[i]->symbol);
+                    value[i - 1] = temp->children[i]->value;
+                    insert_var(assignop->children[0]->value.string, GLOBAL, tables->size++, type, temp->children[i]->value);
+                }
+
+            }
+        }
+
+
+
+        else {
             // multiple assignments
             if(temp->symbol == typeList)
             {
