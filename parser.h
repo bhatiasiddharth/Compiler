@@ -9,7 +9,7 @@ extern int parse_table[NONTERM_COUNT][TERM_COUNT];
 extern const char* nonterm_names[];
 
 extern void init_parse_table();
-extern struct tree_node* create_parsetree();
+extern struct tree_node* create_parsetree(const char* src_file, const char* tokens_file);
 extern void print_symbol(FILE* fp, int symbol, union value value);
 
 #endif

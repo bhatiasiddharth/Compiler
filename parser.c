@@ -430,13 +430,24 @@ void print_symbol(FILE* fp, int symbol, union value value) {
   }
 }
 
-struct tree_node* create_parsetree(FILE* fp) {
+void write_token(FILE *fp, struct token* token) {
+    fprintf(fp, "(%2d, %2d)\t", token->linenum, token->colnum);
+    fprintf(fp, "%s", (token->type >= KWRD_BEGIN ? "Keyword - " : ""));
+    fprintf(fp, "%-20s\t", token_names[token->type]);
+    if(token_hasvalue(token->type))
+        print_value(fp, token->type, token->value);
+    fprintf(fp, "\n");  
+}
+
+struct tree_node* create_parsetree(const char* src_file, const char* tokens_file) {
 	struct stack* stack = stack_init();
 	struct token token;
     struct symbol_tree stree;
     struct symbol_tree* stree_ptr;
+    FILE* sfp = fopen(src_file, "r");
+    FILE* tfp = fopen(tokens_file, "w+");
 
-	int status = gettok(fp, &token);
+	int status = gettok(sfp, &token);
     union value zero_value;
 
     stree.symbol = DOLLAR;
@@ -447,8 +458,10 @@ struct tree_node* create_parsetree(FILE* fp) {
 	struct tree_node* root = tree_init(NULL, Program, zero_value);
 	struct tree_node* temptree = root;
 
+    fprintf(tfp, "%6s\t%-20s\t%s\n", "(Line, Col)", "Token", "Token value");
+    // write token to file
+    write_token(tfp, &token);
 	while(status != -1){
-		//stack_print(stack,fp);
 
 		// return root node when succesful
 		if(status == 0 && stack_topval(stack) == DOLLAR) {
@@ -467,7 +480,10 @@ struct tree_node* create_parsetree(FILE* fp) {
                 }
                 stack_pop(stack);
                 
-				status = gettok(fp, &token);  
+				status = gettok(sfp, &token); 
+                
+                // write token to file
+                write_token(tfp, &token); 
 			}
 			else {
 				printf("Error in Terminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],token_names[stack_topval(stack)],token.linenum,token.colnum);
@@ -509,5 +525,7 @@ struct tree_node* create_parsetree(FILE* fp) {
 		else
 			printf("%s %d %d", token_names[token.type],token.linenum,token.colnum);
 	}
+    fclose(sfp);
+    fclose(tfp);
     return NULL;
 }
