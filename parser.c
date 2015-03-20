@@ -496,7 +496,7 @@ struct tree_node* create_parsetree(const char* src_file, const char* tokens_file
                 write_token(tfp, &token); 
 			}
 			else {
-				printf("Error in Terminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],token_names[stack_topval(stack)],token.linenum,token.colnum);
+				printf("%d,%d Error in Terminal for Token %s. Expected Token %s\n",token.linenum,token.colnum,token_names[token.type],token_names[stack_topval(stack)]);
 				return NULL;
 			}
 		} else {
@@ -504,7 +504,7 @@ struct tree_node* create_parsetree(const char* src_file, const char* tokens_file
 
 			int i = 0;
 			if(rule == -1) {
-				printf("Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token_names[token.type],nonterm_names[stack_topval(stack)-100],token.linenum,token.colnum);
+				printf("%d,%d Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token.linenum,token.colnum,token_names[token.type],nonterm_names[stack_topval(stack)-100]);
 				return NULL;
 			}
 
