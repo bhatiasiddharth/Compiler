@@ -87,8 +87,8 @@ int insert_fun(char* name, SymbolTable* st, int num, enum var_type type);
 
 
 /* prints a formatted listing of the symbol table */
-void printSymTab(SymbolTable* st, FILE *fp);
+void printSymTab(SymbolTable* st, FILE *fp,int headerFlag);
 void printFunTab(FILE *fp);
 VarSymbol* lookup_var_offset (SymbolTable* st,int offset);
-void write_table(const char* symbols_file);
+void write_table(const char* symbols_file, struct tree_node* syntax_tree);
 #endif

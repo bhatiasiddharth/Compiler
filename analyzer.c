@@ -16,8 +16,8 @@ enum var_type get_type(int symbol) {
 
 
 }
-void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
-     int i;
+void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_name,FILE* fp) {
+    int i;
     int n = tr->children_count;
     struct tree_node* temp;
     union value tvalue;
@@ -178,9 +178,18 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
         pushTable(temp_table);
         for (int i = 0; i < tr->children_count; ++i)
         {
-            st_fill(tr->children[i],current_scope,temp_table);
+            st_fill(tr->children[i],current_scope,temp_table,func_name,fp);
         }
-        printSymTab(temp_table, stdout);
+        SymbolTable* copy_table=temp_table;
+        fprintf(fp, "While of %s()\n",func_name);
+        printSymTab(copy_table, fp,1);
+        copy_table=copy_table->next;
+        while(copy_table!=NULL)
+        {
+        	printSymTab(copy_table, fp,0);
+        	copy_table=copy_table->next;
+        }
+        fprintf(fp, "\n\n");
         popTable(temp_table);
     }
 
@@ -212,7 +221,7 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
 
         for (int i = 0; i < tr->children_count; ++i)
         {
-            st_fill(tr->children[i],current_scope,temp_table);
+            st_fill(tr->children[i],current_scope,temp_table,tr->children[1]->value.string,fp);
         }
         popTable(temp_table);
     } 
@@ -222,14 +231,24 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
 
     else if(tr->symbol == IfStmt)
     {
-        st_fill(tr->children[0],scope,tables);
+        st_fill(tr->children[0],scope,tables,func_name,fp);
         
         for (int i = 1; i < tr->children_count; ++i)
         {
             SymbolTable* temp_table= newSymbolTable(++current_scope);
             pushTable(temp_table);
-            st_fill(tr->children[i],current_scope,temp_table);
-            printSymTab(temp_table, stdout);
+            st_fill(tr->children[i],current_scope,temp_table,func_name,fp);
+            
+            SymbolTable* copy_table=temp_table;
+            fprintf(fp, "If Else of %s()\n",func_name);
+            printSymTab(copy_table, fp,1);
+            copy_table=copy_table->next;
+            while(copy_table!=NULL)
+            {
+            	printSymTab(copy_table, fp,0);
+            	copy_table=copy_table->next;
+            }
+            fprintf(fp, "\n\n");
             popTable(temp_table);
         }
     }
@@ -237,13 +256,22 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
 
     else if(tr->symbol == ElseStmt) // need only 1 more new scope
     {
-        st_fill(tr->children[0],scope,tables);
-        st_fill(tr->children[1],scope,tables);
+        st_fill(tr->children[0],scope,tables,func_name,fp);
+        st_fill(tr->children[1],scope,tables,func_name,fp);
     
         SymbolTable* temp_table= newSymbolTable(++current_scope);
         pushTable(temp_table);
-        st_fill(tr->children[2],current_scope,temp_table);
-        printSymTab(temp_table, stdout);
+        st_fill(tr->children[2],current_scope,temp_table,func_name,fp);
+        SymbolTable* copy_table=temp_table;
+        fprintf(fp, "Elseif of %s()\n",func_name);
+        printSymTab(copy_table, fp,1);
+        copy_table=copy_table->next;
+        while(copy_table!=NULL)
+        {
+        	printSymTab(copy_table, fp,0);
+        	copy_table=copy_table->next;
+        }
+        fprintf(fp, "\n\n");
         popTable(temp_table);
         
     }
@@ -253,7 +281,7 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
     else {
         for (int i = 0; i < tr->children_count; ++i)
         {
-            st_fill(tr->children[i],scope,tables);
+            st_fill(tr->children[i],scope,tables,func_name,fp);
         }
     }
 }

@@ -121,7 +121,8 @@ const int rules[RULE_COUNT][RULE_MAX_SYMBOLS] = {
 	{ COMMA, NUM, moreNums },
 	{ EPSILON },
 	{ FALSE },
-	{ TRUE }
+	{ TRUE },
+    { FLOAT }
 };
 
 void set_parse_table_cell(int terminal, int token, int rule) {
@@ -203,6 +204,7 @@ void init_parse_table(){
     set_parse_table_cell(singleAssn, OPAREN, 34);
     set_parse_table_cell(singleAssn, CHARL, 34);
     set_parse_table_cell(singleAssn, FALSE, 34);
+    set_parse_table_cell(singleAssn, FLOAT, 34);
     set_parse_table_cell(multAssn, TRUE, 35);
     set_parse_table_cell(multAssn, OBRACE, 35);
     set_parse_table_cell(multAssn, NUM, 35);
@@ -211,6 +213,7 @@ void init_parse_table(){
     set_parse_table_cell(multAssn, STRL, 35);
     set_parse_table_cell(multAssn, OPAREN, 35);
     set_parse_table_cell(multAssn, CHARL, 35);
+    set_parse_table_cell(multAssn, FLOAT, 35);  //CHANGE
     set_parse_table_cell(multAssn, FALSE, 35);
     set_parse_table_cell(moreAssn, COMMA, 36);
     set_parse_table_cell(moreAssn, COLON, 37);
@@ -299,6 +302,7 @@ void init_parse_table(){
     set_parse_table_cell(value, OSQUARE, 74);
     set_parse_table_cell(value, TRUE, 75);
     set_parse_table_cell(value, FALSE, 75);
+    set_parse_table_cell(value, FLOAT, 116);
     set_parse_table_cell(array, OSQUARE, 76);
     set_parse_table_cell(IDList, ID, 77);
     set_parse_table_cell(IDList, NUM, 77);
@@ -308,6 +312,7 @@ void init_parse_table(){
     set_parse_table_cell(IDList, OSQUARE, 77);
     set_parse_table_cell(IDList, TRUE, 77);
     set_parse_table_cell(IDList, FALSE, 77);
+    set_parse_table_cell(IDList, FLOAT, 77);
     set_parse_table_cell(IDList, EPSILON, 78);
     set_parse_table_cell(IDList, CPAREN, 78);
     set_parse_table_cell(moreIds, COMMA, 79);
@@ -322,6 +327,7 @@ void init_parse_table(){
     set_parse_table_cell(arithExpn, OPAREN, 81);
     set_parse_table_cell(arithExpn, CHARL, 81);
     set_parse_table_cell(arithExpn, FALSE, 81);
+    set_parse_table_cell(arithExpn, FLOAT, 81);
     set_parse_table_cell(moreTerms, PLUS, 82);
     set_parse_table_cell(moreTerms, MINUS, 82);
     set_parse_table_cell(moreTerms, EPSILON, 83);
@@ -338,6 +344,7 @@ void init_parse_table(){
     set_parse_table_cell(arithTerm, STRL, 84);
     set_parse_table_cell(arithTerm, OPAREN, 84);
     set_parse_table_cell(arithTerm, CHARL, 84);
+    set_parse_table_cell(arithTerm, FLOAT, 84);
     set_parse_table_cell(arithTerm, FALSE, 84);
     set_parse_table_cell(moreFactors, DIV, 85);
     set_parse_table_cell(moreFactors, MUL, 85);
@@ -357,6 +364,7 @@ void init_parse_table(){
     set_parse_table_cell(factor, OSQUARE, 88);
     set_parse_table_cell(factor, STRL, 88);
     set_parse_table_cell(factor, CHARL, 88);
+    set_parse_table_cell(factor, FLOAT, 88);
     set_parse_table_cell(factor, FALSE, 88);
     set_parse_table_cell(opLow, MINUS, 89);
     set_parse_table_cell(opLow, PLUS, 90);
@@ -367,6 +375,7 @@ void init_parse_table(){
     set_parse_table_cell(relType, OSQUARE, 92);
     set_parse_table_cell(relType, STRL, 92);
     set_parse_table_cell(relType, CHARL, 92);
+    set_parse_table_cell(relType, FLOAT, 92);
     set_parse_table_cell(relType, FALSE, 92);
     set_parse_table_cell(opHigh, DIV, 93);
     set_parse_table_cell(opHigh, MUL, 94);
@@ -378,6 +387,7 @@ void init_parse_table(){
     set_parse_table_cell(boolExpn, OSQUARE, 96);
     set_parse_table_cell(boolExpn, STRL, 96);
     set_parse_table_cell(boolExpn, CHARL, 96);
+    set_parse_table_cell(boolExpn, FLOAT, 96);
     set_parse_table_cell(boolExpn, FALSE, 96);
     set_parse_table_cell(logicalOp, AND, 97);
     set_parse_table_cell(logicalOp, NOT, 98);

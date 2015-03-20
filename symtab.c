@@ -267,11 +267,14 @@ void print_var(VarSymbol* vs, FILE* fp) {
 }
 
 
-void printSymTab(SymbolTable* st, FILE *fp)
+void printSymTab(SymbolTable* st, FILE *fp,int headerFlag)
 {
      int i;
-     fprintf(fp,"Variable Name Scope Offset Value \n");
-     fprintf(fp,"------------- ----- ------ -----\n");
+     if(headerFlag)
+     {
+      fprintf(fp,"Variable Name Scope Offset Value \n");
+      fprintf(fp,"------------- ----- ------ -----\n");
+    }
      VarSymbol* vs = NULL;
      for (i=0;i<SIZE;++i)
      {
@@ -286,13 +289,14 @@ void printSymTab(SymbolTable* st, FILE *fp)
           }
      }
 
-     fprintf(fp, "\n");
+     //fprintf(fp, "\n");
 }
 
 void printFunTab(FILE *fp)
 { 
       fprintf(fp, "Function: main()\n");
-      printSymTab(tables,fp);
+      printSymTab(tables,fp,1);
+      fprintf(fp,"\n");
       FunSymbol* fs=funs;
       while(fs!=NULL)
       {
@@ -308,13 +312,16 @@ void printFunTab(FILE *fp)
         }
         fprintf(fp,")\n");
         
-        printSymTab(fs->symbolTable,fp);
+        printSymTab(fs->symbolTable,fp,1);
+        fprintf(fp,"\n\n");
         fs=fs->next;
       }
 }
 
-void write_table(const char* symbols_file) {
+void write_table(const char* symbols_file, struct tree_node* syntax_tree) {
   FILE *fp = fopen(symbols_file, "w+");
+  initTable();
+  st_fill(syntax_tree,GLOBAL,tables, "main",fp);
   printFunTab(fp);
   fclose(fp);
 }
