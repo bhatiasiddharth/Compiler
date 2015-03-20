@@ -7,7 +7,6 @@
 #include "parser.h"
 
 typedef enum{GLOBAL, LOCAL, PARAM} Scope;
-typedef struct var_symbol VarSymbol;
 
 enum var_type {T_STR, T_ARRAY, T_INT, T_CHAR, T_FUN, T_GRID, T_FLOAT, T_BOOL};
  /* SIZE is the size of the hash table */
@@ -15,7 +14,6 @@ enum var_type {T_STR, T_ARRAY, T_INT, T_CHAR, T_FUN, T_GRID, T_FLOAT, T_BOOL};
 /* SHIFT is the power of two used as multiplier in hash function  */
 #define SHIFT 4
 
-//st_node
 struct var_symbol {
      char* name;
      Scope scope;
@@ -31,64 +29,52 @@ struct var_symbol {
      struct var_symbol* next_FIFO;/*used in FIFO*/
 };
 
-
-typedef struct symbol_table SymbolTable;
 struct symbol_table {
      int size;
      Scope scope;
-     VarSymbol* hashTable[SIZE];
-     /* FIFO queue used to record orders of variables*/
-     VarSymbol* varList;
+     struct var_symbol* hashTable[SIZE];
+     struct var_symbol* varList;
      struct symbol_table* next;
 };
 
-typedef struct fun_symbol FunSymbol;
 struct fun_symbol {
      char* name;
      int type;
      int offset;
-     int paramNum;
-     SymbolTable* symbolTable;
+     int param_num;
+     struct symbol_table* symbolTable;
      struct fun_symbol* next;
 };
 
-// for function call
-struct function_attr {
-     int param_count;
-     int return_type;
-     int* param_types;
-     union value* value;
-};
-
-extern SymbolTable* tables;
+extern struct symbol_table* tables;
 /* the hash function */
 int hash ( char * key );
 
 /* initialize symbol tables*/
-void initTable();
+void init_table();
 
 /* create a new symbol table of certain scope */
-SymbolTable* newSymbolTable(Scope s);
+struct symbol_table* new_symtable(Scope s);
 
 /* manipulate the symbol table stack*/
-SymbolTable* topTable();
-SymbolTable* popTable();
-void pushTable(SymbolTable* st);
+struct symbol_table* top_table();
+struct symbol_table* pop_table();
+void push_table(struct symbol_table* st);
 
 /* look up for a symbol entry*/
-VarSymbol* lookup_var_top(char* name);
-VarSymbol* lookup_var(char * name);
-FunSymbol* lookup_fun(char * name);
+struct var_symbol* lookup_var_top(char* name);
+struct var_symbol* lookup_var(char * name);
+struct fun_symbol* lookup_fun(char * name);
 
 /* insert symbol entries */
 int insert_var(char * name, Scope s, int offset, enum var_type type, union value* value,int size);
-int insert_fun(char* name, SymbolTable* st, int num, enum var_type type);
+int insert_fun(char* name, struct symbol_table* st, int num, enum var_type type);
 
 
 
 /* prints a formatted listing of the symbol table */
-void printSymTab(SymbolTable* st, FILE *fp,int headerFlag);
-void printFunTab(FILE *fp);
-VarSymbol* lookup_var_offset (SymbolTable* st,int offset);
+void print_symtab(struct symbol_table* st, FILE *fp,int headerFlag);
+void print_funtab(FILE *fp);
+struct var_symbol* lookup_var_offset (struct symbol_table* st,int offset);
 void write_table(const char* symbols_file, struct tree_node* syntax_tree);
 #endif

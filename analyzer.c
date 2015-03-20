@@ -2,7 +2,7 @@
 
 
 //static Scope current_scope = GLOBAL; /* record current scope for variable declaration */
-static FunSymbol* current_fun = NULL; /* which function's body are we in ?*/
+static struct fun_symbol* current_fun = NULL; /* which function's body are we in ?*/
 static int current_scope=2;
 
 enum var_type get_type(int symbol) {
@@ -16,7 +16,7 @@ enum var_type get_type(int symbol) {
 
 
 }
-void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_name,FILE* fp) {
+void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* func_name,FILE* fp) {
     int i;
     int n = tr->children_count;
     struct tree_node* temp;
@@ -87,13 +87,13 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
                 if(assignop->children[0]->symbol != array){
                     // single assignment
 
-                    VarSymbol* vs=lookup_var (temp->value.string);  
+                    struct var_symbol* vs=lookup_var (temp->value.string);  
                     if(vs!=NULL)
                     *(vs->value)=assignop->children[0]->value;
 
                     else//function call with and without parameters
                     {
-                        FunSymbol* tempfun=lookup_fun(assignop->children[0]->value.string);
+                        struct fun_symbol* tempfun=lookup_fun(assignop->children[0]->value.string);
                         if(tempfun!=NULL)
                         {
                             //call function
@@ -107,7 +107,7 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
                                 //call function in code gen
                                 for (int i = 1; i < assignop->children[0]->children_count; ++i)
                                 {
-                                    VarSymbol* vs1=lookup_var_offset(tempfun->symbolTable,i-1);
+                                    struct var_symbol* vs1=lookup_var_offset(tempfun->symbolTable,i-1);
                                     *(vs1->value)=assignop->children[0]->children[i]->value;
                                 }
                                  
@@ -124,7 +124,7 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
                     temp = assignop->children[0];
                     int size = temp->children_count;
 
-                    VarSymbol* vs=lookup_var (tr->children[0]->value.string);
+                    struct var_symbol* vs=lookup_var (tr->children[0]->value.string);
                     if(vs!=NULL)
                     for (int i = 1; i < size; ++i)
                     {
@@ -141,13 +141,13 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
         else//function call with no return type
         {
 
-                FunSymbol* tempfunc=lookup_fun(tr->children[0]->value.string);
+                struct fun_symbol* tempfunc=lookup_fun(tr->children[0]->value.string);
                 if(tempfunc!=NULL)
                 {
                     //call function
                     for (int i = 1; i < tr->children_count; ++i)
                         {
-                            VarSymbol* vs1=lookup_var_offset(tempfunc->symbolTable,i-1);
+                            struct var_symbol* vs1=lookup_var_offset(tempfunc->symbolTable,i-1);
                             *(vs1->value)=tr->children[i]->value;
                         }
 
@@ -162,7 +162,7 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
             {
                 for (int i = 0; i < temp->children_count; ++i)
                 {
-                    VarSymbol* vs=lookup_var (temp->children[i]->value.string);
+                    struct var_symbol* vs=lookup_var (temp->children[i]->value.string);
                     //TODO: Check if already declared
                     if(vs!=NULL)
                     *(vs->value)=tr->children[i+1]->value;
@@ -174,23 +174,23 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
     
     else if(tr->symbol == LoopStmt)
     {
-        SymbolTable* temp_table= newSymbolTable(++current_scope);
-        pushTable(temp_table);
+        struct symbol_table* temp_table= new_symtable(++current_scope);
+        push_table(temp_table);
         for (int i = 0; i < tr->children_count; ++i)
         {
             st_fill(tr->children[i],current_scope,temp_table,func_name,fp);
         }
-        SymbolTable* copy_table=temp_table;
+        struct symbol_table* copy_table=temp_table;
         fprintf(fp, "While of %s()\n",func_name);
-        printSymTab(copy_table, fp,1);
+        print_symtab(copy_table, fp,1);
         copy_table=copy_table->next;
         while(copy_table!=NULL)
         {
-        	printSymTab(copy_table, fp,0);
+        	print_symtab(copy_table, fp,0);
         	copy_table=copy_table->next;
         }
         fprintf(fp, "\n\n");
-        popTable(temp_table);
+        pop_table(temp_table);
     }
 
 
@@ -198,11 +198,11 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
 
     else if(tr->symbol == FunctionDef)
     {
-        SymbolTable* temp_table= newSymbolTable(++current_scope);
+        struct symbol_table* temp_table= new_symtable(++current_scope);
 
         insert_fun(tr->children[1]->value.string, temp_table, (tr->children[2]->children_count)/2 , T_FUN);
 
-        pushTable(temp_table);
+        push_table(temp_table);
 
         
         //for parameter list
@@ -223,7 +223,7 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
         {
             st_fill(tr->children[i],current_scope,temp_table,tr->children[1]->value.string,fp);
         }
-        popTable(temp_table);
+        pop_table(temp_table);
     } 
 
 
@@ -235,21 +235,21 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
         
         for (int i = 1; i < tr->children_count; ++i)
         {
-            SymbolTable* temp_table= newSymbolTable(++current_scope);
-            pushTable(temp_table);
+            struct symbol_table* temp_table= new_symtable(++current_scope);
+            push_table(temp_table);
             st_fill(tr->children[i],current_scope,temp_table,func_name,fp);
             
-            SymbolTable* copy_table=temp_table;
+            struct symbol_table* copy_table=temp_table;
             fprintf(fp, "If Else of %s()\n",func_name);
-            printSymTab(copy_table, fp,1);
+            print_symtab(copy_table, fp,1);
             copy_table=copy_table->next;
             while(copy_table!=NULL)
             {
-            	printSymTab(copy_table, fp,0);
+            	print_symtab(copy_table, fp,0);
             	copy_table=copy_table->next;
             }
             fprintf(fp, "\n\n");
-            popTable(temp_table);
+            pop_table(temp_table);
         }
     }
 
@@ -259,20 +259,20 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables,char* func_nam
         st_fill(tr->children[0],scope,tables,func_name,fp);
         st_fill(tr->children[1],scope,tables,func_name,fp);
     
-        SymbolTable* temp_table= newSymbolTable(++current_scope);
-        pushTable(temp_table);
+        struct symbol_table* temp_table= new_symtable(++current_scope);
+        push_table(temp_table);
         st_fill(tr->children[2],current_scope,temp_table,func_name,fp);
-        SymbolTable* copy_table=temp_table;
+        struct symbol_table* copy_table=temp_table;
         fprintf(fp, "Elseif of %s()\n",func_name);
-        printSymTab(copy_table, fp,1);
+        print_symtab(copy_table, fp,1);
         copy_table=copy_table->next;
         while(copy_table!=NULL)
         {
-        	printSymTab(copy_table, fp,0);
+        	print_symtab(copy_table, fp,0);
         	copy_table=copy_table->next;
         }
         fprintf(fp, "\n\n");
-        popTable(temp_table);
+        pop_table(temp_table);
         
     }
 

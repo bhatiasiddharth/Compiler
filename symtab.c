@@ -1,23 +1,13 @@
-/*build symbol tables
- * and function tables
- */
+
 #include "symtab.h"
-/* tables store different symbol tables,
- * incluidng global, local and param.
- */
-SymbolTable* tables = NULL;
+
+
+struct symbol_table* tables = NULL;
 /* funs store all function symbols */
-FunSymbol* funs = NULL;
+struct fun_symbol* funs = NULL;
 
+amST;
 
-
-/* temporary table used to allocate small symtabs for Compound & Param */
-SymbolTable* CompoundST;
-SymbolTable* ParamST;
-
-
-
-/* the hash function */
 int hash ( char * key ) {
      int temp = 0;
      int i = 0;
@@ -27,29 +17,15 @@ int hash ( char * key ) {
      }
      return temp;
 }
-
-/* Note: we insert for input()&output() here*/
-void initTable()
+void init_table()
 {
-     CompoundST = newSymbolTable(LOCAL);
-     ParamST = newSymbolTable(PARAM);
-     tables = newSymbolTable(GLOBAL);
-
-     //insert_fun("input", ParamST, 0, TYPE_INTEGER);
-     //ParamST = newSymbolTable(PARAM);
-
-     // pushTable(ParamST);
-     // insert_var("i", PARAM, ParamST->size++, TYPE_INTEGER);
-     // popTable();
-     // insert_fun("output", ParamST, ParamST->size, TYPE_VOID);
-     // ParamST = newSymbolTable(PARAM);
+     tables = new_symtable(GLOBAL);
 }
 
 /* create a new symbol table of certain scope */
-SymbolTable* newSymbolTable(Scope scope)
-{
+struct symbol_table* new_symtable(Scope scope) {
      int i;
-     SymbolTable* st = (SymbolTable*)malloc(sizeof(SymbolTable));
+     struct symbol_table* st = (struct symbol_table*)malloc(sizeof(struct symbol_table));
      if(st == NULL){
         fprintf(stderr, "Failed to malloc for symbal table.\n");
      }
@@ -63,24 +39,20 @@ SymbolTable* newSymbolTable(Scope scope)
 }
 
 
-/* manipulate the symbol table stack*/
-SymbolTable* topTable()
-{
+struct symbol_table* top_table() {
      return tables;
 }
 
-SymbolTable* popTable()
-{
+struct symbol_table* pop_table() {
      if(tables == NULL){
         fprintf(stderr, "Pop an empty table list.\n");
      }
-     SymbolTable* st = tables;
+     struct symbol_table* st = tables;
      tables = tables->next;
      return st;
 }
 
-void pushTable(SymbolTable* st)
-{
+void push_table(struct symbol_table* st) {
      if(st == NULL){
       fprintf(stderr, "Push an null table.\n");
      }
@@ -90,12 +62,11 @@ void pushTable(SymbolTable* st)
 
 
 /* look up for variables in top symbol table*/
-VarSymbol* lookup_var_top(char* name)
-{
+struct var_symbol* lookup_var_top(char* name) {
     if(tables == NULL)
       return NULL;
 
-    VarSymbol* l;
+    struct var_symbol* l;
     int h = hash(name);
     for(l = tables->hashTable[h]; l!=NULL; l=l->next){
         if(strcmp(l->name, name) == 0 )
@@ -106,13 +77,12 @@ VarSymbol* lookup_var_top(char* name)
 }
 
 /* lookup for variable with offset this and in symboltable st*/
-VarSymbol* lookup_var_offset (SymbolTable* st,int offset)
-{
+struct var_symbol* lookup_var_offset (struct symbol_table* st,int offset) {
      if(st == NULL)
         return NULL;
 
        
-     VarSymbol* vs;
+     struct var_symbol* vs;
      
      for (int i=0;i<SIZE;++i)
      {
@@ -128,15 +98,14 @@ VarSymbol* lookup_var_offset (SymbolTable* st,int offset)
 }
 
 /* lookup for all tables in the stack */
-VarSymbol* lookup_var (char * name)
-{
+struct var_symbol* lookup_var (char * name) {
      if(tables == NULL)
         return NULL;
 
        
      int h = hash(name);
-     SymbolTable* st;
-     VarSymbol* l;
+     struct symbol_table* st;
+     struct var_symbol* l;
      
      for(st = tables; st!=NULL; st=st->next) /* iteration of all symbol tables in stack */
      {
@@ -150,11 +119,10 @@ VarSymbol* lookup_var (char * name)
 }
 
 /* look up for a function symbol*/
-FunSymbol* lookup_fun(char * name)
-{
+struct fun_symbol* lookup_fun(char * name) {
      if(funs == NULL)
         return NULL;
-     FunSymbol* fs;
+     struct fun_symbol* fs;
      for(fs=funs;fs!=NULL; fs = fs->next)
      {
           if(strcmp(fs->name, name)==0)
@@ -164,9 +132,8 @@ FunSymbol* lookup_fun(char * name)
 }
 
 /* Always insert var into the top symbol table*/
-int insert_var(char * name, Scope scope, int offset, enum var_type type, union value* value,int size)
-{
-     VarSymbol* l, *tmp;
+int insert_var(char * name, Scope scope, int offset, enum var_type type, union value* value,int size) {
+     struct var_symbol* l, *tmp;
      int h = hash(name);
 
      /*Check duplication*/
@@ -185,9 +152,9 @@ int insert_var(char * name, Scope scope, int offset, enum var_type type, union v
         return 1;
      }
 
-      l = (VarSymbol*) malloc(sizeof(VarSymbol));
+      l = (struct var_symbol*) malloc(sizeof(struct var_symbol));
       if(l == NULL){
-        fprintf(stderr, "Failed to malloc for VarSymbol.\n" );
+        fprintf(stderr, "Failed to malloc for struct var_symbol.\n" );
       }
       l->name = strdup(name);
       l->scope = scope;
@@ -214,22 +181,21 @@ int insert_var(char * name, Scope scope, int offset, enum var_type type, union v
 
 } 
 
-int insert_fun(char* name, SymbolTable* st, int num, enum var_type type)
-{
-     FunSymbol* fs;
+int insert_fun(char* name, struct symbol_table* st, int num, enum var_type type) {
+     struct fun_symbol* fs;
 
      /*Check duplication*/
      if(lookup_fun(name) != NULL){
         fprintf(stderr, "Duplicate declarations of function: %s\n", name);
         return 1;
      }
-     fs = (FunSymbol*)malloc(sizeof(FunSymbol));
+     fs = (struct fun_symbol*)malloc(sizeof(struct fun_symbol));
      if(fs == NULL){
-        fprintf(stderr, "Failed to malloc for FunSymbol.\n");
+        fprintf(stderr, "Failed to malloc for struct fun_symbol.\n");
      }
      fs->name = strdup(name);
      fs->type = type;
-     fs->paramNum = num;
+     fs->param_num = num;
      fs->symbolTable = st;
      fs->next = funs;
      funs = fs;
@@ -239,7 +205,7 @@ int insert_fun(char* name, SymbolTable* st, int num, enum var_type type)
                    
 
 
-void print_var(VarSymbol* vs, FILE* fp) {
+void print_var(struct var_symbol* vs, FILE* fp) {
 
     if(vs->size>0)
     for (int i = 0; i < vs->size; ++i)
@@ -267,15 +233,14 @@ void print_var(VarSymbol* vs, FILE* fp) {
 }
 
 
-void printSymTab(SymbolTable* st, FILE *fp,int headerFlag)
-{
+void print_symtab(struct symbol_table* st, FILE *fp,int headerFlag) {
      int i;
      if(headerFlag)
      {
       fprintf(fp,"Variable Name Scope Offset Value \n");
       fprintf(fp,"------------- ----- ------ -----\n");
     }
-     VarSymbol* vs = NULL;
+     struct var_symbol* vs = NULL;
      for (i=0;i<SIZE;++i)
      {
           for(vs = st->hashTable[i]; vs != NULL; vs=vs->next)
@@ -292,18 +257,17 @@ void printSymTab(SymbolTable* st, FILE *fp,int headerFlag)
      //fprintf(fp, "\n");
 }
 
-void printFunTab(FILE *fp)
-{ 
+void print_funtab(FILE *fp) { 
       fprintf(fp, "Function: main()\n");
-      printSymTab(tables,fp,1);
+      print_symtab(tables,fp,1);
       fprintf(fp,"\n");
-      FunSymbol* fs=funs;
+      struct fun_symbol* fs=funs;
       while(fs!=NULL)
       {
         fprintf(fp, "Function: %s(",fs->name);
-        for (int i = 0; i < fs->paramNum; ++i)
+        for (int i = 0; i < fs->param_num; ++i)
         {
-          VarSymbol* vs=lookup_var_offset(fs->symbolTable,i);
+          struct var_symbol* vs=lookup_var_offset(fs->symbolTable,i);
           if(vs!=NULL)
           {
             if(i!=0)fprintf(fp, ",");
@@ -312,7 +276,7 @@ void printFunTab(FILE *fp)
         }
         fprintf(fp,")\n");
         
-        printSymTab(fs->symbolTable,fp,1);
+        print_symtab(fs->symbolTable,fp,1);
         fprintf(fp,"\n\n");
         fs=fs->next;
       }
@@ -320,8 +284,8 @@ void printFunTab(FILE *fp)
 
 void write_table(const char* symbols_file, struct tree_node* syntax_tree) {
   FILE *fp = fopen(symbols_file, "w+");
-  initTable();
+  init_table();
   st_fill(syntax_tree,GLOBAL,tables, "main",fp);
-  printFunTab(fp);
+  print_funtab(fp);
   fclose(fp);
 }
