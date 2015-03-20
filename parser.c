@@ -460,11 +460,12 @@ struct tree_node* create_parsetree(FILE* fp) {
 		}else if(stack_topval(stack) < 100) {
             stree_ptr = (struct symbol_tree*) stack_top(stack);
 			if(stree_ptr->symbol == token.type) {
-				stack_pop(stack);
+				
                 if(token_hasvalue(token.type))
                 {
                     stree_ptr->root->value = token.value;
                 }
+                stack_pop(stack);
                 
 				status = gettok(fp, &token);  
 			}
