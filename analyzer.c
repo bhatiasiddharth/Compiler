@@ -87,8 +87,35 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
                 if(assignop->children[0]->symbol != array){
                     // single assignment
 
-                    VarSymbol* vs=lookup_var (temp->value.string);
+                    VarSymbol* vs=lookup_var (temp->value.string);  
+                    if(vs!=NULL)
                     *(vs->value)=assignop->children[0]->value;
+
+                    else//function call with and without parameters
+                    {
+                        FunSymbol* tempfun=lookup_fun(assignop->children[0]->value.string);
+                        if(tempfun!=NULL)
+                        {
+                            //call function
+                        }
+                        else if(assignop->children[0]->symbol==relType) //for reltype
+                        {
+
+                            tempfun=lookup_fun(assignop->children[0]->children[0]->value.string);    
+                            if(tempfun!=NULL)
+                            {
+                                //call function in code gen
+                                for (int i = 1; i < assignop->children[0]->children_count; ++i)
+                                {
+                                    VarSymbol* vs1=lookup_var_offset(tempfun->symbolTable,i-1);
+                                    *(vs1->value)=assignop->children[0]->children[i]->value;
+                                }
+                                 
+
+
+                            }
+                        }
+                    }
                 }
                 else {
                     // array assignment
@@ -98,16 +125,33 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
                     int size = temp->children_count;
 
                     VarSymbol* vs=lookup_var (tr->children[0]->value.string);
+                    if(vs!=NULL)
                     for (int i = 1; i < size; ++i)
                     {
                         
-                        //vs->value[i-1] = temp->children[i]->value;
+                        vs->value[i-1] = temp->children[i]->value;
                         
                     }
 
                 }
             }
 
+        }
+
+        else//function call with no return type
+        {
+
+                FunSymbol* tempfunc=lookup_fun(tr->children[0]->value.string);
+                if(tempfunc!=NULL)
+                {
+                    //call function
+                    for (int i = 1; i < tr->children_count; ++i)
+                        {
+                            VarSymbol* vs1=lookup_var_offset(tempfunc->symbolTable,i-1);
+                            *(vs1->value)=tr->children[i]->value;
+                        }
+
+                }
         }
     }
 
@@ -151,19 +195,20 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
 
         pushTable(temp_table);
 
-        /*
+        
         //for parameter list
         temp=tr->children[2];
          for (int i = 0; i < temp->children_count/2; ++i)
         {
             union value* value = (union value*) malloc(sizeof(union value));
-                *value= assignop->children[1]->value;
+                //*value= 0;
+                bzero(value, sizeof(union value));
                 type = get_type(temp->children[2*i+1]->symbol);
                 //later send value
-                insert_var(temp->children[2*i]->value.string, current_scope, temp_table->size++, type,NULL,1);
+                insert_var(temp->children[2*i]->value.string, current_scope, temp_table->size++, type,value,1);
 
         }
-        */
+        
 
         for (int i = 0; i < tr->children_count; ++i)
         {
@@ -187,6 +232,20 @@ void st_fill(struct tree_node* tr, int scope, SymbolTable* tables) {
             printSymTab(temp_table, stdout);
             popTable(temp_table);
         }
+    }
+
+
+    else if(tr->symbol == ElseStmt) // need only 1 more new scope
+    {
+        st_fill(tr->children[0],scope,tables);
+        st_fill(tr->children[1],scope,tables);
+    
+        SymbolTable* temp_table= newSymbolTable(++current_scope);
+        pushTable(temp_table);
+        st_fill(tr->children[2],current_scope,temp_table);
+        printSymTab(temp_table, stdout);
+        popTable(temp_table);
+        
     }
 
 

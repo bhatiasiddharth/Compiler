@@ -76,7 +76,7 @@ struct tree_node* removeNonTerm(struct tree_node* tr)
      {
      	int symbol = tr->children[k]->symbol;
 
-	     if(symbol==multAssn || symbol==moreStmts || symbol==moreRows || symbol==moreNums || symbol==typeList || symbol==parameterList  )
+	     if(symbol==multAssn || symbol==moreStmts || symbol==moreRows || symbol==moreNums || symbol==typeList || symbol==parameterList || symbol==IDList )
 	     {
 	     	int j;
 	     	int newcount=k;
@@ -174,6 +174,7 @@ struct tree_node* create_ast(struct tree_node* root) {
     removeExtra(root);
     removeNonTerm(root);
     arithmeticPass(root);
+
 
     return root;
 }

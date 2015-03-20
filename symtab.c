@@ -105,6 +105,28 @@ VarSymbol* lookup_var_top(char* name)
     return l;
 }
 
+/* lookup for variable with offset this and in symboltable st*/
+VarSymbol* lookup_var_offset (SymbolTable* st,int offset)
+{
+     if(st == NULL)
+        return NULL;
+
+       
+     VarSymbol* vs;
+     
+     for (int i=0;i<SIZE;++i)
+     {
+          for(vs = st->hashTable[i]; vs != NULL; vs=vs->next)
+          {
+               if(vs->offset==offset)
+                return vs;
+          }
+     }
+
+
+     return NULL;                  /* may be NULL */
+}
+
 /* lookup for all tables in the stack */
 VarSymbol* lookup_var (char * name)
 {
@@ -274,8 +296,14 @@ void printFunTab(FILE *fp)
       FunSymbol* fs=funs;
       while(fs!=NULL)
       {
-        printf("%s (%d)\n",fs->name,fs->paramNum);
+        fprintf(fp, "%s (%d)\n",fs->name,fs->paramNum);
         printSymTab(fs->symbolTable,fp);
         fs=fs->next;
       }
+}
+
+void write_table(const char* symbols_file) {
+  FILE *fp = fopen(symbols_file, "w+");
+  printFunTab(fp);
+  fclose(fp);
 }

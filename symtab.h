@@ -89,5 +89,6 @@ int insert_fun(char* name, SymbolTable* st, int num, enum var_type type);
 /* prints a formatted listing of the symbol table */
 void printSymTab(SymbolTable* st, FILE *fp);
 void printFunTab(FILE *fp);
+VarSymbol* lookup_var_offset (SymbolTable* st,int offset);
 
 #endif

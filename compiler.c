@@ -10,10 +10,11 @@ int main(int argc, char const *argv[]) {
 	}
 	const char* src_file = argv[1];
 	init_parse_table();
-	char tokens_file[MAX_LEN], parse_file[MAX_LEN], syntax_file[MAX_LEN];
+	char tokens_file[MAX_LEN], parse_file[MAX_LEN], syntax_file[MAX_LEN], symbols_file[MAX_LEN];
 	strcpy(tokens_file, src_file);
 	strcpy(parse_file, src_file);
 	strcpy(syntax_file, src_file);
+	strcpy(symbols_file, src_file);
 
 	char* idx = strstr(parse_file, ".c");
 	strcpy(idx, "-parse.tree");
@@ -21,6 +22,8 @@ int main(int argc, char const *argv[]) {
 	strcpy(idx, "-syntax.tree");
 	idx = strstr(tokens_file, ".c");
 	strcpy(idx, ".tokens");
+	idx = strstr(symbols_file, ".c");
+	strcpy(idx, ".symbols");
 
 	// create parse tree and write tokens also
 	struct tree_node* parse_tree = create_parsetree(src_file, tokens_file);
@@ -33,7 +36,7 @@ int main(int argc, char const *argv[]) {
 	initTable();
 	st_fill(syntax_tree,GLOBAL,tables);
     //printSymTab(tables, stdout);
-	printFunTab(stdout);
+	write_table(symbols_file);
 
 	return 0;
 }
