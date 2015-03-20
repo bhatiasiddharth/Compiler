@@ -35,7 +35,6 @@ Instructions
 TODO
 =====
 
-- Parameter list & Scope number
 - Twin buffer
 - Error Handling overall esp. parser
 
@@ -44,6 +43,9 @@ TODO
 
 - Refactor AST algorithm to reduce passes
 - Check parse table again
+
+
+- ~~ Parameter list & Scope number~~
 - ~~Put Token in tree~~
 - ~~Create driver.c with command line arguments to show output for each stage~~
 - ~~Error handling in parser:Not required~~

@@ -291,12 +291,23 @@ void printSymTab(SymbolTable* st, FILE *fp)
 
 void printFunTab(FILE *fp)
 { 
-      printf("Main\n");
+      fprintf(fp, "Function: main()\n");
       printSymTab(tables,fp);
       FunSymbol* fs=funs;
       while(fs!=NULL)
       {
-        fprintf(fp, "%s (%d)\n",fs->name,fs->paramNum);
+        fprintf(fp, "Function: %s(",fs->name,fs->paramNum);
+        for (int i = 0; i < fs->paramNum; ++i)
+        {
+          VarSymbol* vs=lookup_var_offset(fs->symbolTable,i);
+          if(vs!=NULL)
+          {
+            if(i!=0)fprintf(fp, ",");
+            fprintf(fp, "%s", vs->name );
+          }
+        }
+        fprintf(fp,")\n");
+        
         printSymTab(fs->symbolTable,fp);
         fs=fs->next;
       }

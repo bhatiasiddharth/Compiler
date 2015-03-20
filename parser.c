@@ -458,7 +458,7 @@ struct tree_node* create_parsetree(const char* src_file, const char* tokens_file
 	struct tree_node* root = tree_init(NULL, Program, zero_value);
 	struct tree_node* temptree = root;
 
-    fprintf(tfp, "%6s\t%-20s\t%s\n", "(Line, Col)", "Token", "Token value");
+    fprintf(tfp, "%6s\t%-20s\t%s\n", "(LINE, COL)", "TOKEN", "VALUE");
     // write token to file
     write_token(tfp, &token);
 	while(status != -1){
