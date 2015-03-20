@@ -403,14 +403,20 @@ void init_parse_table(){
     set_parse_table_cell(boolean, TRUE, 115);
 }
 
-static void stack_pushval(struct stack* stack, int value) {
-    int* value_ptr = (int *) malloc(sizeof(int));
+struct symbol_tree {
+    int symbol;
+    struct tree_node* root;
+};
+
+static void stack_pushval(struct stack* stack, struct symbol_tree value) {
+    struct symbol_tree* value_ptr = (struct symbol_tree *) malloc(sizeof(struct symbol_tree));
     *value_ptr = value;
     return stack_push(stack, value_ptr);
 }
+
 static int stack_topval(struct stack* stack) {
-    int* top = stack_top(stack);
-    return *top;
+    struct symbol_tree* top = stack_top(stack);
+    return top->symbol;
 }
 
 void print_symbol(FILE* fp, int symbol, union value value) {
@@ -427,10 +433,16 @@ void print_symbol(FILE* fp, int symbol, union value value) {
 struct tree_node* create_parsetree(FILE* fp) {
 	struct stack* stack = stack_init();
 	struct token token;
+    struct symbol_tree stree;
+    struct symbol_tree* stree_ptr;
+
 	int status = gettok(fp, &token);
     union value zero_value;
-	stack_pushval(stack, DOLLAR);
-	stack_pushval(stack, Program);
+
+    stree.symbol = DOLLAR;
+	stack_pushval(stack, stree);
+    stree.symbol = Program;
+	stack_pushval(stack, stree);
 
 	struct tree_node* root = tree_init(NULL, Program, zero_value);
 	struct tree_node* temptree = root;
@@ -446,8 +458,10 @@ struct tree_node* create_parsetree(FILE* fp) {
 		if(stack_topval(stack) == EPSILON) {
 			stack_pop(stack);
 		}else if(stack_topval(stack) < 100) {
-			if(stack_topval(stack) == token.type) {
+            stree_ptr = (struct symbol_tree*) stack_top(stack);
+			if(stree_ptr->symbol == token.type) {
 				stack_pop(stack);
+                *(stree_ptr->root).value = token.value;
 				status = gettok(fp, &token);  
 			}
 			else {
@@ -467,13 +481,14 @@ struct tree_node* create_parsetree(FILE* fp) {
 			temptree = tree_traverse(root);
 
 			// End of Rule is marked by zero, since no rule has DOLLAR on RHS
+            int flag = 0;
 			while(rules[rule][i] != 0) {
 				temptree->children[i] = tree_init(temptree, rules[rule][i], zero_value);
-                 if(token_hasvalue(rules[rule][i]) && rules[rule][i]==token.type) {
-
-                     temptree->children[i]->value = token.value;
-                     print_symbol(stdout,token.type,temptree->children[i]->value);
-                 }
+                 // if(token_hasvalue(rules[rule][i]) && rules[rule][i]==token.type && !flag && token.type != FN) {
+                 //     flag =1;
+                 //     temptree->children[i]->value = token.value;
+                 //     print_symbol(stdout,token.type,temptree->children[i]->value);
+                 // }
 				i++;
 			}
 			
@@ -481,7 +496,9 @@ struct tree_node* create_parsetree(FILE* fp) {
 			i--;
 			
 			while(i != -1) {
-				stack_pushval(stack, rules[rule][i]);
+                stree.symbol = rules[rule][i];
+                stree.root = temptree->children[temptree->children_count - i -1];
+				stack_pushval(stack, stree);
 				i--;
 			}
 		}

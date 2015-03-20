@@ -33,13 +33,15 @@ void print_value(FILE* fp, int symbol, union value value){
         fprintf(fp, "%d ", value.bool);
     }else if(symbol == STRL) {
         fprintf(fp, "%s ", value.string);
+    }else if(symbol == ID) {
+        fprintf(fp, "%s ", value.string);
     }else {
         fprintf(fp, "Empty ");
     }
 }
 
 int token_hasvalue(int symbol) {
-  return (symbol == NUM || symbol == FLOAT || symbol == STRL || symbol == BOOL || symbol == CHARL);
+  return (symbol == ID || symbol == NUM || symbol == FLOAT || symbol == STRL || symbol == BOOL || symbol == CHARL);
 }
 
 int gettok(FILE *fp, struct token* token) {
@@ -82,6 +84,7 @@ int gettok(FILE *fp, struct token* token) {
       token->type = FALSE;
       token->value.bool = 0;
     }
+    strcpy(token->value.string, token->lexeme);
     colnum += strlen(token->lexeme);
     return 1;
   }

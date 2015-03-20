@@ -40,7 +40,7 @@ struct tree_node* remove_Chaining(struct tree_node* tr)
     if(tr->children_count ==1 && tr->symbol>=100 && tr->symbol!=MethodCall)
     {
         struct tree_node* ptr = tr->children[0];
-
+        tr->value = ptr->value;
         tr->symbol = ptr->symbol;
         tr->children_count = ptr->children_count;
         int i =0;
