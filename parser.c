@@ -461,7 +461,11 @@ struct tree_node* create_parsetree(FILE* fp) {
             stree_ptr = (struct symbol_tree*) stack_top(stack);
 			if(stree_ptr->symbol == token.type) {
 				stack_pop(stack);
-                *(stree_ptr->root).value = token.value;
+                if(token_hasvalue(token.type))
+                {
+                    stree_ptr->root->value = token.value;
+                }
+                
 				status = gettok(fp, &token);  
 			}
 			else {
@@ -497,7 +501,7 @@ struct tree_node* create_parsetree(FILE* fp) {
 			
 			while(i != -1) {
                 stree.symbol = rules[rule][i];
-                stree.root = temptree->children[temptree->children_count - i -1];
+                stree.root = temptree->children[i];
 				stack_pushval(stack, stree);
 				i--;
 			}
