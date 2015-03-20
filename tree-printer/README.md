@@ -13,5 +13,3 @@ Converting text to svg
 	node main.js sample1.txt sample2.txt
 
 SVG files are saved in same directory as input, multiple files are accepted as input.
-
-Original treefun for browser - https://github.com/jimblackler/treefun/

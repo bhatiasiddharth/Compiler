@@ -1,0 +1,19 @@
+main() {
+	let mut (a, b, c) = (1, 2, "foo");
+	if(a==1)
+	{
+		let ifvar=6;
+		if (ifvar==6)
+		{
+			let nested=8;
+		}
+	}
+	else
+	{
+		let ifvar=7;
+	}
+	while(a==4)
+	{
+		let str="hello";
+	}
+}

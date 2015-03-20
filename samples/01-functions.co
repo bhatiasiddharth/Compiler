@@ -8,5 +8,4 @@ main (){
    let mut x = 0;
    x = add(1, 2);
    print(x);
-   //hello
 }

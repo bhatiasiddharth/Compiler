@@ -440,14 +440,6 @@ void print_symbol(FILE* fp, int symbol, union value value) {
   }
 }
 
-void write_token(FILE *fp, struct token* token) {
-    fprintf(fp, "(%2d, %2d)\t", token->linenum, token->colnum);
-    fprintf(fp, "%s", (token->type >= KWRD_BEGIN ? "Keyword - " : ""));
-    fprintf(fp, "%-20s\t", token_names[token->type]);
-    if(token_hasvalue(token->type))
-        print_value(fp, token->type, token->value);
-    fprintf(fp, "\n");  
-}
 
 struct tree_node* create_parsetree(const char* src_file, const char* tokens_file) {
 	struct stack* stack = stack_init();
@@ -504,7 +496,7 @@ struct tree_node* create_parsetree(const char* src_file, const char* tokens_file
 
 			int i = 0;
 			if(rule == -1) {
-				printf("%d,%d Error in Nonterminal for Token %s. Expected Token %s %d:%d\n",token.linenum,token.colnum,token_names[token.type],nonterm_names[stack_topval(stack)-100]);
+				printf("%d,%d Error in Nonterminal for Token %s. Expected Token %s\n",token.linenum,token.colnum,token_names[token.type],nonterm_names[stack_topval(stack)-100]);
 				return NULL;
 			}
 

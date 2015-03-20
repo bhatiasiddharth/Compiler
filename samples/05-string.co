@@ -1,5 +1,0 @@
-main(){
-   let mut s = "Hello";
-   s.toUpper();
-   print(s);
-}

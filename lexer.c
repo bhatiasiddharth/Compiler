@@ -1,7 +1,6 @@
 #include "lexer.h"
 
 const char* token_names[] = {"DOLLAR", "EPSILON", "RARROW", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COLON", "COMMA", "DOT", "COMMENT", "OSQUARE", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE ", "NE", "ASSIGNOP", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "TRUE", "FALSE", "RETURN", "CHAR", "I32", "F32", "BOOL", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT", "MUT"};
-
 int single_token_map[][2] = {
   { '[', OSQUARE },
   { ']', CSQUARE },
@@ -46,28 +45,41 @@ int token_hasvalue(int symbol) {
 
 int gettok(FILE *fp, struct token* token) {
   int i;
-  static int current_char = ' ';
+  static int count = 0;
   static int linenum = 1, colnum = 1;
+  size_t startlen = 2*BUFFER_SIZE;
+  size_t len = BUFFER_SIZE;
+  static char* token_buffer;
+
+  // BUFFERED I/O
+  if(count == 0) {
+    token_buffer = (char*) malloc(2 * BUFFER_SIZE * sizeof(char));
+    getdelim(&token_buffer, &len, 0, fp);
+  }else if(count > BUFFER_SIZE) {
+    token_buffer = token_buffer + BUFFER_SIZE;
+    count = count % BUFFER_SIZE;
+    getdelim(&token_buffer, &len, 0, fp);
+  }
   bzero(token->lexeme, MAX_LEN);
   
   // Skip any whitespace.
-  while (isspace(current_char)) {
-    if(current_char == '\n') {
+  while (isspace(token_buffer[count])) {
+    if(token_buffer[count] == '\n') {
       linenum++;
       colnum = 1;
-    }else if(current_char == ' ') {
+    }else if(token_buffer[count] == ' ' || token_buffer[count] == '\t') {
       colnum++;
     }
-    current_char = getc(fp);
+    count++;
   }
 
   token->linenum = linenum;
   token->colnum = colnum;
-  if (isalpha(current_char)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
+  if (isalpha(token_buffer[count])) { // identifier: [a-zA-Z][a-zA-Z0-9]*
     token->type = ID;
-    build_lexeme(token->lexeme, current_char);
-    while (isalnum((current_char = getc(fp)))){
-      build_lexeme(token->lexeme, current_char);
+    build_lexeme(token->lexeme, token_buffer[count]);
+    while (isalnum(token_buffer[++count])){
+      build_lexeme(token->lexeme, token_buffer[count]);
     }
     strcpy(token->value.string, token->lexeme);
     for(i = KWRD_BEGIN; i < KWRD_BEGIN + KWRD_CNT; i++) {
@@ -86,16 +98,18 @@ int gettok(FILE *fp, struct token* token) {
     }
     
     colnum += strlen(token->lexeme);
+
+    // printf("count - %d %c \n", count, token_buffer[count]);
     return 1;
   }
 
-  if (isdigit(current_char)) {   // Number: [0-9.]+
+  if (isdigit(token_buffer[count])) {   // Number: [0-9.]+
     token->type = NUM;
     do {
-      if(current_char == '.') token->type = FLOAT;
-      build_lexeme(token->lexeme, current_char);
-      current_char = getc(fp);
-    } while (isdigit(current_char) || (current_char == '.' && token->type == NUM));
+      if(token_buffer[count] == '.') token->type = FLOAT;
+      build_lexeme(token->lexeme, token_buffer[count]);
+      count++;
+    } while (isdigit(token_buffer[count]) || (token_buffer[count] == '.' && token->type == NUM));
 
     if(token->type == NUM)
       token->value.inum = atoi(token->lexeme);
@@ -106,13 +120,13 @@ int gettok(FILE *fp, struct token* token) {
     return 1;
   }
 
-  if (current_char == '/') {
-    if((current_char = getc(fp)) == '/') {
+  if (token_buffer[count] == '/') {
+    if(token_buffer[++count] == '/') {
       token->type = COMMENT;
       // Comment until end of line.
       do {
-        current_char = getc(fp);
-      }while (current_char != EOF && current_char != '\n' && current_char != '\r');
+        count++;
+      }while (token_buffer[count] != EOF && token_buffer[count] != '\n' && token_buffer[count] != '\r');
       return 1;
     }else {
       token->type = DIV;
@@ -121,11 +135,11 @@ int gettok(FILE *fp, struct token* token) {
     }
  }
 
-  if (current_char == '=') {
-    if((current_char = getc(fp)) == '=') {
+  if (token_buffer[count] == '=') {
+    if(token_buffer[++count] == '=') {
       token->type = EQ;
       strcpy(token->lexeme, "==");
-      current_char = getc(fp);
+      count++;
       colnum += 2;
       return 1;
   }else {
@@ -136,11 +150,11 @@ int gettok(FILE *fp, struct token* token) {
    }
  }
 
-  if (current_char == '-') {
-    if((current_char = getc(fp)) == '>'){
+  if (token_buffer[count] == '-') {
+    if(token_buffer[++count] == '>'){
       token->type = RARROW;
       strcpy(token->lexeme, "->");
-      current_char = getc(fp);
+      count++;
       colnum += 2;
       return 1;
   }else {
@@ -150,18 +164,18 @@ int gettok(FILE *fp, struct token* token) {
       return 1;
    }
 }
-   if (current_char == '<') {
+   if (token_buffer[count] == '<') {
 
-    if((current_char = getc(fp)) == '=') {
+    if(token_buffer[++count] == '=') {
       token->type = LE;
       strcpy(token->lexeme, "<=");
-      current_char = getc(fp);
+      count++;
       colnum += 2;
       return 1;
-  }else if(current_char == '>'){
+  }else if(token_buffer[count] == '>'){
       token->type = NE;
       strcpy(token->lexeme, "<>");
-      current_char = getc(fp);
+      count++;
       colnum += 2;
       return 1;
    }else{
@@ -171,12 +185,12 @@ int gettok(FILE *fp, struct token* token) {
       return 1;
    }
 }
-   if (current_char == '>') {
+   if (token_buffer[count] == '>') {
 
-    if((current_char = getc(fp)) == '=') {
+    if(token_buffer[++count] == '=') {
       token->type = GE;
       strcpy(token->lexeme, ">=");
-      current_char = getc(fp);
+      count++;
       colnum += 2;
       return 1;
   }else{
@@ -186,31 +200,31 @@ int gettok(FILE *fp, struct token* token) {
       return 1;
    }
 }
-  if (current_char == '"') {
+  if (token_buffer[count] == '"') {
     token->type = STRL;
-    while ((current_char = getc(fp)) && (isalnum(current_char) || isspace(current_char))) {
-      build_lexeme(token->lexeme, current_char);
+    while (token_buffer[++count] && (isalnum(token_buffer[count]) || isspace(token_buffer[count]))) {
+      build_lexeme(token->lexeme, token_buffer[count]);
     }
     
     strcpy(token->value.string, token->lexeme);
-    if(current_char == '"'){
-      current_char = getc(fp);
+    if(token_buffer[count] == '"'){
+      count++;
       colnum += strlen(token->lexeme) + 2;
       return 1;
     }else {
-      current_char = getc(fp);
+      count++;
       return -1;
     }
   }
 
-  if (current_char == '\'') {
+  if (token_buffer[count] == '\'') {
     token->type = CHARL;
-    current_char = getc(fp);
+    count++;
 
-    build_lexeme(token->lexeme, current_char);
-    token->value.ch = current_char;
-    if((current_char = getc(fp))== '\''){
-      current_char = getc(fp);
+    build_lexeme(token->lexeme, token_buffer[count]);
+    token->value.ch = token_buffer[count];
+    if(token_buffer[++count]== '\''){
+      count++;
       colnum += strlen(token->lexeme) + 2;
       return 1;
     }else{
@@ -219,19 +233,28 @@ int gettok(FILE *fp, struct token* token) {
   }
 
   for(i = 0; i < SINGLE_TKNS; i++) {
-    if(current_char == single_token_map[i][0]){          
+    if(token_buffer[count] == single_token_map[i][0]){          
       token->type = single_token_map[i][1];
-      build_lexeme(token->lexeme, current_char);
-      current_char = getc(fp);
+      build_lexeme(token->lexeme, token_buffer[count]);
+      count++;
       colnum += 1;      
       return 1;
     }
   }
     
-  if(!feof(fp)){
+  if(token_buffer[count] != 0){
     // Error - Invalid token
     printf("(%d, %d) Error - Invalid token\n", linenum, colnum);
     return -1;
   }
   return 0;
+}
+
+void write_token(FILE *fp, struct token* token) {
+    fprintf(fp, "(%2d, %2d)\t", token->linenum, token->colnum);
+    fprintf(fp, "%s", (token->type >= KWRD_BEGIN ? "Keyword - " : ""));
+    fprintf(fp, "%-20s\t", token_names[token->type]);
+    if(token_hasvalue(token->type))
+        print_value(fp, token->type, token->value);
+    fprintf(fp, "\n");  
 }

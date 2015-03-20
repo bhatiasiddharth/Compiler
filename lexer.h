@@ -1,5 +1,6 @@
 #ifndef _LEXER_H
 #define _LEXER_H
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -20,6 +21,7 @@ enum token_type {DOLLAR, EPSILON, RARROW, CSQUARE, OPAREN, CPAREN, OBRACE, CBRAC
 #define TERM_COUNT 52
 #define RULE_COUNT 117
 #define RULE_MAX_SYMBOLS 20
+#define BUFFER_SIZE 1024
 
 union value{
 	char ch;
@@ -40,5 +42,7 @@ extern const char* token_names[];
 extern int token_hasvalue(int symbol);
 extern int gettok(FILE *fp, struct token* token);
 extern void print_value(FILE* fp, int symbol, union value value);
+extern void write_token(FILE *fp, struct token* token);
+
 
 #endif

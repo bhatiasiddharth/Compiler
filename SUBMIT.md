@@ -13,6 +13,6 @@ Instructions
 For each input code, a new file is created for tokens, parse tree, abstract syntax tree and symbol table 
 
 	make
-	./compiler source/01-sum.co
+	./compiler source/05-scoping.co
 
 	make clean

@@ -1,12 +1,9 @@
-/*build symbol tables
- * and function tables
- */
-
 #ifndef SYMTAB_H
 #define SYMTAB_H
 #include "parser.h"
 
 typedef enum{GLOBAL, LOCAL, PARAM} Scope;
+extern char *strdup(const char *s);
 
 enum var_type {T_STR, T_ARRAY, T_INT, T_CHAR, T_FUN, T_GRID, T_FLOAT, T_BOOL};
  /* SIZE is the size of the hash table */

@@ -1,12 +1,10 @@
-
 #include "symtab.h"
-
+#include "analyzer.h"
+#include "parser.h"
 
 struct symbol_table* tables = NULL;
 /* funs store all function symbols */
 struct fun_symbol* funs = NULL;
-
-amST;
 
 int hash ( char * key ) {
      int temp = 0;
