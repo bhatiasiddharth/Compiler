@@ -3,7 +3,7 @@
 #include "ast.h"
 #include "symtab.h"
 
-void st_fill(struct tree_node* syntax_tree);
+extern void st_fill(struct tree_node* tr, int scope, SymbolTable* tables);
 
 
 #endif

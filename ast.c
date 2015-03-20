@@ -76,7 +76,7 @@ struct tree_node* removeNonTerm(struct tree_node* tr)
      {
      	int symbol = tr->children[k]->symbol;
 
-	     if(symbol==multAssn || symbol==moreStmts || symbol==moreRows || symbol==moreNums || symbol==typeList  )
+	     if(symbol==multAssn || symbol==moreStmts || symbol==moreRows || symbol==moreNums || symbol==typeList || symbol==parameterList  )
 	     {
 	     	int j;
 	     	int newcount=k;

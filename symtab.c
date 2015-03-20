@@ -142,7 +142,7 @@ FunSymbol* lookup_fun(char * name)
 }
 
 /* Always insert var into the top symbol table*/
-int insert_var(char * name, Scope scope, int offset, enum var_type type, union value value)
+int insert_var(char * name, Scope scope, int offset, enum var_type type, union value* value,int size)
 {
      VarSymbol* l, *tmp;
      int h = hash(name);
@@ -171,9 +171,12 @@ int insert_var(char * name, Scope scope, int offset, enum var_type type, union v
       l->scope = scope;
       l->type = type;
       l->offset = offset;
+      l->size=size;
       // copy value
-      l->value = (union value*) malloc(sizeof(union value));
-      *(l->value) = value;
+      //l->value = (union value*) malloc(sizeof(union value));
+      //*(l->value) = value;
+      
+      l->value = value;
       l->next = tables->hashTable[h];
       tables->hashTable[h] = l;
       l->next_FIFO = NULL;
@@ -215,37 +218,46 @@ int insert_fun(char* name, SymbolTable* st, int num, enum var_type type)
 
 
 void print_var(VarSymbol* vs, FILE* fp) {
-    switch(vs->type) {
-    case T_STR : fprintf(fp, "%s ", vs->value->string);
-            break;
-    // T_ARRAY fprintf(fp, "%s ", vs->value->inum);
-    //         break;
-    case T_INT : fprintf(fp, "%d ", vs->value->inum);
-            break;
-    case T_CHAR:fprintf(fp, "%c ", vs->value->ch); 
-            break;
-    // T_FUN : fprintf(fp, "%s ", vs->value->inum);
-    //         break;
-    // T_GRID :fprintf(fp, "%s ", vs->value->inum); 
-    //         break;
-    case T_FLOAT: fprintf(fp, "%f ", vs->value->fnum);
-            break;
-    case T_BOOL: fprintf(fp, "%d ", vs->value->bool); 
-            break;
-  }
+
+    if(vs->size>0)
+    for (int i = 0; i < vs->size; ++i)
+    {
+          switch(vs->type) {
+        case T_STR : fprintf(fp, "%s ", vs->value[i].string);
+                break;
+        // T_ARRAY fprintf(fp, "%s ", vs->value[i]->inum);
+        //         break;
+        case T_INT : fprintf(fp, "%d ", vs->value[i].inum);
+                break;
+        case T_CHAR:fprintf(fp, "%c ", vs->value[i].ch); 
+                break;
+        // T_FUN : fprintf(fp, "%s ", vs->value[i]->inum);
+        //         break;
+        // T_GRID :fprintf(fp, "%s ", vs->value[i]->inum); 
+        //         break;
+        case T_FLOAT: fprintf(fp, "%f ", vs->value[i].fnum);
+                break;
+        case T_BOOL: fprintf(fp, "%d ", vs->value[i].bool); 
+                break;
+      }
+    }
+    
 }
+
+
 void printSymTab(SymbolTable* st, FILE *fp)
 {
      int i;
-     fprintf(fp,"Variable Name  Offset Value \n");
-     fprintf(fp,"-------------  ------ ------\n");
+     fprintf(fp,"Variable Name Scope Offset Value \n");
+     fprintf(fp,"------------- ----- ------ -----\n");
      VarSymbol* vs = NULL;
      for (i=0;i<SIZE;++i)
      {
           for(vs = st->hashTable[i]; vs != NULL; vs=vs->next)
           {
                fprintf(fp, "%-14s", vs->name);
-               fprintf(fp, "%-8d", vs->offset);
+               fprintf(fp, "%-10d", vs->scope);
+               fprintf(fp, "%-7d", vs->offset);
                // fprintf(fp, "%-8d");
                print_var(vs, fp);
                fprintf(fp, "\n");
@@ -253,4 +265,17 @@ void printSymTab(SymbolTable* st, FILE *fp)
      }
 
      fprintf(fp, "\n");
+}
+
+void printFunTab(FILE *fp)
+{ 
+      printf("Main\n");
+      printSymTab(tables,fp);
+      FunSymbol* fs=funs;
+      while(fs!=NULL)
+      {
+        printf("%s (%d)\n",fs->name,fs->paramNum);
+        printSymTab(fs->symbolTable,fp);
+        fs=fs->next;
+      }
 }

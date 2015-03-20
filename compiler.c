@@ -42,8 +42,9 @@ int main(int argc, char const *argv[]) {
 	tree_write(syntax_tree, syntax_file);
 	//tree_print(syntax_tree, stdout, 1);
 	initTable();
-	st_fill(syntax_tree);
-    printSymTab(tables, stdout);
+	st_fill(syntax_tree,GLOBAL,tables);
+    //printSymTab(tables, stdout);
+	printFunTab(stdout);
 
 	return 0;
 }

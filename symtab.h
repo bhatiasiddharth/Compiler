@@ -22,7 +22,7 @@ struct var_symbol {
      enum var_type type;
      int offset;
      // for string and array
-     unsigned int length;
+     unsigned int size;
 
      unsigned int mutable:1;
      unsigned int initialized:1;
@@ -81,12 +81,13 @@ VarSymbol* lookup_var(char * name);
 FunSymbol* lookup_fun(char * name);
 
 /* insert symbol entries */
-int insert_var(char * name, Scope s, int offset, enum var_type type, union value value);
+int insert_var(char * name, Scope s, int offset, enum var_type type, union value* value,int size);
 int insert_fun(char* name, SymbolTable* st, int num, enum var_type type);
 
 
 
 /* prints a formatted listing of the symbol table */
 void printSymTab(SymbolTable* st, FILE *fp);
+void printFunTab(FILE *fp);
 
 #endif

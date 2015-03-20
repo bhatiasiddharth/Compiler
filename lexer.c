@@ -41,7 +41,7 @@ void print_value(FILE* fp, int symbol, union value value){
 }
 
 int token_hasvalue(int symbol) {
-  return (symbol == ID || symbol == NUM || symbol == FLOAT || symbol == STRL || symbol == BOOL || symbol == CHARL);
+  return (symbol == ID || symbol == NUM || symbol == FLOAT || symbol == STRL || symbol == TRUE || symbol == FALSE || symbol == CHARL);
 }
 
 int gettok(FILE *fp, struct token* token) {
@@ -69,7 +69,7 @@ int gettok(FILE *fp, struct token* token) {
     while (isalnum((current_char = getc(fp)))){
       build_lexeme(token->lexeme, current_char);
     }
-
+    strcpy(token->value.string, token->lexeme);
     for(i = KWRD_BEGIN; i < KWRD_BEGIN + KWRD_CNT; i++) {
       if(strcasecmp(token->lexeme, token_names[i]) == 0)
         token->type = i;
@@ -84,7 +84,7 @@ int gettok(FILE *fp, struct token* token) {
       token->type = FALSE;
       token->value.bool = 0;
     }
-    strcpy(token->value.string, token->lexeme);
+    
     colnum += strlen(token->lexeme);
     return 1;
   }

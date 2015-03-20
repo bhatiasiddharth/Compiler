@@ -35,13 +35,15 @@ Instructions
 TODO
 =====
 
-- Use twin buffer for lexer
-- Refactor AST algorithm to reduce passes
-- Check parse table again
-- Use linked list in tree.c
+- Parameter list & Scope number
+- Twin buffer
 - Error Handling overall esp. parser
+
+
 - Handle float, boolean, grid 
 
+- Refactor AST algorithm to reduce passes
+- Check parse table again
 - ~~Put Token in tree~~
 - ~~Create driver.c with command line arguments to show output for each stage~~
 - ~~Error handling in parser:Not required~~
