@@ -33,10 +33,10 @@ int main(int argc, char const *argv[]) {
 	struct tree_node* syntax_tree = create_ast(parse_tree);
 	tree_write(syntax_tree, syntax_file);
 	//tree_print(syntax_tree, stdout, 1);
-	initTable();
-	st_fill(syntax_tree,GLOBAL,tables);
+
+
     //printSymTab(tables, stdout);
-	write_table(symbols_file);
+	write_table(symbols_file,syntax_tree);
 
 	return 0;
 }

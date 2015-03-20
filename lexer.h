@@ -18,7 +18,7 @@ enum token_type {DOLLAR, EPSILON, RARROW, CSQUARE, OPAREN, CPAREN, OBRACE, CBRAC
 
 #define NONTERM_COUNT 59
 #define TERM_COUNT 52
-#define RULE_COUNT 116
+#define RULE_COUNT 117
 #define RULE_MAX_SYMBOLS 20
 
 union value{
