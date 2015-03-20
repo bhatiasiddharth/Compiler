@@ -9,6 +9,7 @@ do
    cat $i >> "$GRP/$i"
 done
 cp SUBMIT.md $GRP/
+cp CompilerGrammer.pdf $GRP/
 cp Makefile $GRP/
 cp -r tree-printer/* $GRP/tree-printer
 rm -rf $GRP/tree-printer
