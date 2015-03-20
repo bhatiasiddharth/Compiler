@@ -15,3 +15,6 @@ compiler: $(DEPS)
 
 clean: 
 	rm -rf *.out *.dSYM *.o compiler samples/*.tree samples/*.svg *.tokens
+
+submit: clean
+	./submit.sh

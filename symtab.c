@@ -296,7 +296,7 @@ void printFunTab(FILE *fp)
       FunSymbol* fs=funs;
       while(fs!=NULL)
       {
-        fprintf(fp, "Function: %s(",fs->name,fs->paramNum);
+        fprintf(fp, "Function: %s(",fs->name);
         for (int i = 0; i < fs->paramNum; ++i)
         {
           VarSymbol* vs=lookup_var_offset(fs->symbolTable,i);
