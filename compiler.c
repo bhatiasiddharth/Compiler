@@ -1,7 +1,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "ast.h"
-//#include "symboltable.h"
+#include "analyzer.h"
 
 int main(int argc, char const *argv[]) {
 	if(argc < 2) {
@@ -41,6 +41,9 @@ int main(int argc, char const *argv[]) {
 	struct tree_node* syntax_tree = create_ast(parse_tree);
 	tree_write(syntax_tree, syntax_file);
 	//tree_print(syntax_tree, stdout, 1);
+	initTable();
+	st_fill(syntax_tree);
+    printSymTab(tables, stdout);
 
 	return 0;
 }
