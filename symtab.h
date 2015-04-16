@@ -1,5 +1,5 @@
-#ifndef SYMTAB_H
-#define SYMTAB_H
+#ifndef _SYMTAB_H
+#define _SYMTAB_H
 #include "parser.h"
 
 typedef enum{GLOBAL, LOCAL, PARAM} Scope;
@@ -73,5 +73,5 @@ int insert_fun(char* name, struct symbol_table* st, int num, enum var_type type)
 void print_symtab(struct symbol_table* st, FILE *fp,int headerFlag);
 void print_funtab(FILE *fp);
 struct var_symbol* lookup_var_offset (struct symbol_table* st,int offset);
-void write_table(const char* symbols_file, struct tree_node* syntax_tree);
+void symtab_write(const char* symbols_file, struct tree_node* syntax_tree);
 #endif

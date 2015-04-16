@@ -28,7 +28,7 @@ struct symbol_table* new_symtable(Scope scope) {
         fprintf(stderr, "Failed to malloc for symbal table.\n");
      }
      st->scope = scope;
-     st->size = 0;      
+     st->size = 0;
      st->next = NULL;
      st->varList = NULL;
      for(i = 0;i<SIZE;i++)
@@ -79,9 +79,9 @@ struct var_symbol* lookup_var_offset (struct symbol_table* st,int offset) {
      if(st == NULL)
         return NULL;
 
-       
+
      struct var_symbol* vs;
-     
+
      for (int i=0;i<SIZE;++i)
      {
           for(vs = st->hashTable[i]; vs != NULL; vs=vs->next)
@@ -100,11 +100,11 @@ struct var_symbol* lookup_var (char * name) {
      if(tables == NULL)
         return NULL;
 
-       
+
      int h = hash(name);
      struct symbol_table* st;
      struct var_symbol* l;
-     
+
      for(st = tables; st!=NULL; st=st->next) /* iteration of all symbol tables in stack */
      {
           for(l = st->hashTable[h]; l!=NULL; l=l->next) /* iteration of all linkedlist in a symboltable */
@@ -162,7 +162,7 @@ int insert_var(char * name, Scope scope, int offset, enum var_type type, union v
       // copy value
       //l->value = (union value*) malloc(sizeof(union value));
       //*(l->value) = value;
-      
+
       l->value = value;
       l->next = tables->hashTable[h];
       tables->hashTable[h] = l;
@@ -177,7 +177,7 @@ int insert_var(char * name, Scope scope, int offset, enum var_type type, union v
 
       return 0;
 
-} 
+}
 
 int insert_fun(char* name, struct symbol_table* st, int num, enum var_type type) {
      struct fun_symbol* fs;
@@ -200,7 +200,7 @@ int insert_fun(char* name, struct symbol_table* st, int num, enum var_type type)
 
      return 0;
 }
-                   
+
 
 
 void print_var(struct var_symbol* vs, FILE* fp) {
@@ -215,19 +215,19 @@ void print_var(struct var_symbol* vs, FILE* fp) {
         //         break;
         case T_INT : fprintf(fp, "%d ", vs->value[i].inum);
                 break;
-        case T_CHAR:fprintf(fp, "%c ", vs->value[i].ch); 
+        case T_CHAR:fprintf(fp, "%c ", vs->value[i].ch);
                 break;
         // T_FUN : fprintf(fp, "%s ", vs->value[i]->inum);
         //         break;
-        // T_GRID :fprintf(fp, "%s ", vs->value[i]->inum); 
+        // T_GRID :fprintf(fp, "%s ", vs->value[i]->inum);
         //         break;
         case T_FLOAT: fprintf(fp, "%f ", vs->value[i].fnum);
                 break;
-        case T_BOOL: fprintf(fp, "%d ", vs->value[i].bool); 
+        case T_BOOL: fprintf(fp, "%d ", vs->value[i].bool);
                 break;
       }
     }
-    
+
 }
 
 
@@ -255,7 +255,7 @@ void print_symtab(struct symbol_table* st, FILE *fp,int headerFlag) {
      //fprintf(fp, "\n");
 }
 
-void print_funtab(FILE *fp) { 
+void print_funtab(FILE *fp) {
       fprintf(fp, "Function: main()\n");
       print_symtab(tables,fp,1);
       fprintf(fp,"\n");
@@ -273,14 +273,14 @@ void print_funtab(FILE *fp) {
           }
         }
         fprintf(fp,")\n");
-        
+
         print_symtab(fs->symbolTable,fp,1);
         fprintf(fp,"\n\n");
         fs=fs->next;
       }
 }
 
-void write_table(const char* symbols_file, struct tree_node* syntax_tree) {
+void symtab_write(const char* symbols_file, struct tree_node* syntax_tree) {
   FILE *fp = fopen(symbols_file, "w+");
   init_table();
   st_fill(syntax_tree,GLOBAL,tables, "main",fp);

@@ -19,4 +19,5 @@ echo $CONF > dosbox.conf
 $DOSBOX -conf dosbox.conf > /dev/null
 mv "$MASM_PATH$caps_filename.out" "$MASM_PATH$filename.out"
 mv "$MASM_PATH$filename.out" $dirname
-cat $filename.out
+rm dosbox.conf
+cat $dirname/$filename.out
