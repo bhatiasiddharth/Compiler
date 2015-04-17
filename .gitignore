@@ -4,4 +4,6 @@
 *.svg
 *.tree
 *.dSYM
+samples/*
+!samples/*.co
 tree-printer/node_modules

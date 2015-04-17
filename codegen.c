@@ -9,8 +9,15 @@ char* getreg(int reg) {
 	return reg_names[reg];
 }
 
-void dataseg_add(char *defn) {
-	strcat(dataseg, defn);
+void dataseg_add(char *identifier, int scope, int type) {
+	char entry[MAX_LEN];
+	char storage_type[3];
+	if(type == T_INT) {
+		strcpy(storage_type, "dd");
+	}else if (type == T_CHAR || T_BOOL || T_STR)
+		strcpy(storage_type, "db");
+	sprintf(entry, "%s_%d %s\n", identifier, scope, storage_type);
+	strcat(dataseg, entry);
 }
 
 void codeseg_add(char *stmt) {

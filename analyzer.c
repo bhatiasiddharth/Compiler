@@ -40,7 +40,8 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
                 union value* value = (union value*) malloc(sizeof(union value));
                 *value= assignop->children[1]->value;
                 type = get_type(assignop->children[1]->symbol);
-                printf("> %s %d \n", temp->value.string, tables->size);
+                dataseg_add(temp->value.string, scope, type);
+                printf("> %s %d \n", temp->value.string, scope);
                 insert_var(temp->value.string, scope, tables->size++, type,value,1);
             }
             else {
@@ -49,13 +50,11 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
                 int size = temp->children_count;
                 union value* value = (union value*) malloc(sizeof(union value) * (size - 1));
                 type = get_type(temp->children[1]->symbol);
-                for (int i = 1; i < size; ++i)
-                {
-
+                for (int i = 1; i < size; ++i) {
                     value[i-1] = temp->children[i]->value;
-
                 }
-                printf("> %s %d \n", temp->value.string, tables->size);
+                dataseg_add(temp->value.string, scope, type);
+                printf("> %s %d \n", temp->value.string, scope);
                 insert_var(assignop->children[0]->value.string, scope, tables->size++, type, value, size-1);
 
             }
@@ -72,7 +71,9 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
                     union value* tvalue = (union value*) malloc(sizeof(union value));
                     *tvalue = assignop->children[i+1]->value;
                     type = get_type(assignop->children[i + 1]->symbol);
-                    printf("> %s %d \n", temp->value.string, tables->size);
+                    dataseg_add(temp->children[i]->value.string, scope, type);
+
+                    printf("> %s %d \n", temp->children[i]->value.string, scope);
                     insert_var(temp->children[i]->value.string, scope, tables->size++, type, tvalue,1);
                 }
             }
@@ -277,6 +278,10 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
         fprintf(fp, "\n\n");
         pop_table(temp_table);
 
+    } else if(tr->symbol == OStmt) {
+      // if number,  float, charl, strl print directly
+
+      // if identifier - lookup in table and print value
     }
 
 

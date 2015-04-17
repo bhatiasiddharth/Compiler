@@ -4,8 +4,8 @@ DEPS = parser.o lexer.o stack.o tree.o ast.o compiler.o symtab.o analyzer.o code
 
 SAMPLE = samples/05-scoping
 
-chrome:	run
-	@open -a "Google Chrome" $(SAMPLE)-syntax.svg $(SAMPLE).symbols $(SAMPLE).asm
+chrome:	run create-tree
+	@open -a "Google Chrome" $(SAMPLE).co $(SAMPLE)-syntax.svg $(SAMPLE).symbols $(SAMPLE).asm
 
 run: compiler
 	@./compiler.out $(SAMPLE).co
@@ -23,4 +23,4 @@ clean:
 	rm -rf *.out *.dSYM *.o compiler samples/*.tree samples/*.svg samples/*.tokens samples/*.symbols Group_15.T2 Group_15.T2.tar
 
 submit: clean
-	./submit.sh
+	scripts/submit.sh
