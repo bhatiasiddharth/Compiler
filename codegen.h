@@ -3,8 +3,8 @@
 
 #include "lexer.h"
 #include "analyzer.h"
-extern void dataseg_add(char *identifier, int scope, int type);
-extern void codeseg_add(char *stmt);
+void dataseg_add(char *identifier, int scope, int type, union value* value);
+extern void codeseg_add(char *fmt, ...);
 extern void codgen_write(char *codegen_file, struct tree_node* ast);
 
 enum registers{AX, BX, CX, DX };
@@ -13,6 +13,7 @@ enum registers{AX, BX, CX, DX };
 #define DATA_SIZE 10*1024
 #define CODE_SIZE 10*1024
 #define REG_COUNT 4
+#define MACROS_FILE "codegen/utils.asm"
 
 int reg[REG_COUNT];
 char* reg_names[];
