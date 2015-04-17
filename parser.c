@@ -447,6 +447,10 @@ struct tree_node* create_parsetree(const char* src_file, const char* tokens_file
     struct symbol_tree stree;
     struct symbol_tree* stree_ptr;
     FILE* sfp = fopen(src_file, "r");
+		if(sfp == NULL) {
+			fprintf(stderr, "Invalid file\n");
+			exit(-1);
+		}
     FILE* tfp = fopen(tokens_file, "w+");
 
 	int status = gettok(sfp, &token);
@@ -475,17 +479,17 @@ struct tree_node* create_parsetree(const char* src_file, const char* tokens_file
 		}else if(stack_topval(stack) < 100) {
             stree_ptr = (struct symbol_tree*) stack_top(stack);
 			if(stree_ptr->symbol == token.type) {
-				
+
                 if(token_hasvalue(token.type))
                 {
                     stree_ptr->root->value = token.value;
                 }
                 stack_pop(stack);
-                
-				status = gettok(sfp, &token); 
-                
+
+				status = gettok(sfp, &token);
+
                 // write token to file
-                write_token(tfp, &token); 
+                write_token(tfp, &token);
 			}
 			else {
 				printf("%d,%d Error in Terminal for Token %s. Expected Token %s\n",token.linenum,token.colnum,token_names[token.type],token_names[stack_topval(stack)]);
@@ -509,10 +513,10 @@ struct tree_node* create_parsetree(const char* src_file, const char* tokens_file
 				temptree->children[i] = tree_init(temptree, rules[rule][i], zero_value);
 				i++;
 			}
-			
+
 			temptree->children_count = i;
 			i--;
-			
+
 			while(i != -1) {
                 stree.symbol = rules[rule][i];
                 stree.root = temptree->children[i];

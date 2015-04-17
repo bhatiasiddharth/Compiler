@@ -353,9 +353,7 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
         }
 
       }
-  }else if(is_arithop(tr->symbol) || tr->symbol == NUM) {
-    printf("nothing\n");
-  } else {
+  }else {
         for (int i = 0; i < tr->children_count; ++i)
         {
             st_fill(tr->children[i],scope,tables,func_name,fp);

@@ -5,7 +5,7 @@
 #include "analyzer.h"
 void dataseg_add(char *identifier, int scope, int type, union value* value);
 extern void codeseg_add(char *fmt, ...);
-extern void codgen_write(char *codegen_file, struct tree_node* ast);
+extern void codegen_write(char *codegen_file, struct tree_node* ast);
 
 enum registers{AX, BX, CX, DX };
 
