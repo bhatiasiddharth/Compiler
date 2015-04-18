@@ -230,12 +230,19 @@ void multi_assign_stmt(struct tree_node* tr, int scope) {
 }
 
 void print_stmt(struct tree_node* tr, int scope) {
+  static int strcount = 0;
   int type;
   int symbol = tr->children[1]->symbol;
   // if number,  float, charl, strl print directly
-  if (symbol == NUM || symbol == FLOAT || symbol == STRL || symbol == TRUE || symbol == FALSE) {
-    // dataseg_add
-    // codeseg_add
+  if (symbol == NUM ) {
+    codeseg_add("printnum %d", tr->children[1]->value.inum);
+  }else if(symbol == STRL) {
+    strcount++;
+    char strname[MAX_LEN];
+    sprintf(strname, "_printstr%d", strcount);
+    dataseg_add(strname, scope, T_STR, &(tr->children[1]->value), 1);
+
+    codeseg_add("printstr _printstr%d_%d", strcount, scope);
   }
   // if identifier - lookup in table and print value
   else if (symbol == ID) {

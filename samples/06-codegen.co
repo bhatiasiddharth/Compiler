@@ -10,4 +10,8 @@ main() {
 	//while(a == 4) {
 		//print(k);
 	//}
+	print(120);
+	print("foo");
+	print("Hello World");
+
 }

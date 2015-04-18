@@ -1,6 +1,7 @@
 ; constants
 _true db 'true', '$'
 _false db 'false', '$'
+_printstr db 80 dup('$')
 ; utility macros and procedures
 ; print 32 bit number
 printnum macro number
