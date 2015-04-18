@@ -75,3 +75,13 @@ printbool macro bool
   printstr _true
   _print_end:
 endm
+
+eval_LT macro
+  local x1, _end
+  jl x1
+  mov eax, 0
+  jmp _end
+  x1:
+  mov eax,1
+  _end:
+endm

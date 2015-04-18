@@ -5,7 +5,7 @@ DEPS = parser.o lexer.o stack.o tree.o ast.o symtab.o analyzer.o codegen.o compi
 SAMPLE = samples/06-codegen
 .PHONY = exec debug
 chrome:	run create-tree
-	@open -a "Google Chrome" $(SAMPLE).co $(SAMPLE)-syntax.svg $(SAMPLE).symbols $(SAMPLE).asm
+	@open -a "Google Chrome" $(SAMPLE)-syntax.svg
 
 run: compiler
 	@./compiler.out $(SAMPLE).co

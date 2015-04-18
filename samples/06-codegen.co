@@ -1,5 +1,5 @@
 main() {
-	let u = 20;
+	let u = 5;
 	let k = 10;
 	print(k);
 	k = u;
@@ -12,6 +12,10 @@ main() {
 	//}
 	print(120);
 	print("foo");
-	print("Hello World");
+	print("Hello Worlds");
+	if(u < 20) {
+		print("u is less than 20");
+		print(500);
+	}
 
 }

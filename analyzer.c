@@ -55,7 +55,29 @@ void eval_expn(struct tree_node* tr, int scope) {
       codeseg_add("pop eax");
       codeseg_add("div ebx");
       codeseg_add("push eax");
+    }else if(tr->symbol == AND) {
+      codeseg_add("pop ebx  ; and");
+      codeseg_add("pop eax");
+      codeseg_add("and eax, ebx");
+      codeseg_add("push eax");
+    }else if(tr->symbol == OR) {
+      codeseg_add("pop ebx  ; or");
+      codeseg_add("pop eax");
+      codeseg_add("or eax, ebx");
+      codeseg_add("push eax");
+    }else if(tr->symbol == NOT) {
+      codeseg_add("pop eax  ; not");
+      codeseg_add("not eax");
+      codeseg_add("push eax");
+    }else if(tr->symbol == LT) {
+      codeseg_add("pop ebx  ; LT");
+      codeseg_add("pop eax");
+      codeseg_add("cmp eax, ebx");
+      codeseg_add("eval_LT ; get result in eax");
+      codeseg_add("push eax");
     }
+    //LE, EQ, GE , NE
+    //LT GT
 }
 
 void declaration_stmt(struct tree_node* tr, int scope) {
@@ -305,25 +327,39 @@ void func_defn_stmt(struct tree_node* tr, int scope, FILE* fp) {
 }
 
 void if_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char* func_name, FILE* fp) {
-  st_fill(tr->children[0],scope,tables,func_name,fp);
+  static int if_count = 0;
+  // codegen for boolean expn
+  eval_expn(tr->children[0], scope);
+  codeseg_add("cmp eax, 1");
+  int labelnum = if_count;
+  if_count++;
+  codeseg_add("jnz if_begin%d", labelnum);
+  // codegen for if block
+  st_fill(tr->children[1], scope, tables, func_name, fp);
+  codeseg_add("jmp if_end%d", labelnum);
+  codeseg_add("if_begin%d:", labelnum);
+  // else segment code
+  if(tr->children[2] != NULL)
+  st_fill(tr->children[2], scope, tables, func_name, fp);
+  codeseg_add("if_end%d:", labelnum);
 
-  for (int i = 1; i < tr->children_count; i++) {
-      struct symbol_table* temp_table= new_symtable(++current_scope);
-      push_table(temp_table);
-      st_fill(tr->children[i],current_scope,temp_table,func_name,fp);
-
-      struct symbol_table* copy_table=temp_table;
-      fprintf(fp, "If Else of %s()\n",func_name);
-      print_symtab(copy_table, fp,1);
-      copy_table=copy_table->next;
-      while(copy_table!=NULL)
-      {
-        print_symtab(copy_table, fp,0);
-        copy_table=copy_table->next;
-      }
-      fprintf(fp, "\n\n");
-      pop_table(temp_table);
-  }
+  // for (int i = 1; i < tr->children_count; i++) {
+  //     struct symbol_table* temp_table = new_symtable(++current_scope);
+  //     struct symbol_table* copy_table = temp_table;
+  //     push_table(temp_table);
+  //     st_fill(tr->children[i], current_scope, temp_table, func_name, fp);
+  //
+  //     fprintf(fp, "If Else of %s()\n",func_name);
+  //     print_symtab(copy_table, fp,1);
+  //     copy_table = copy_table->next;
+  //
+  //     while(copy_table != NULL) {
+  //       print_symtab(copy_table, fp,0);
+  //       copy_table = copy_table->next;
+  //     }
+  //     fprintf(fp, "\n\n");
+  //     pop_table(temp_table);
+  // }
 }
 
 void else_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char* func_name, FILE* fp) {
@@ -387,7 +423,7 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
     // else stmt
     // need only 1 more new scope
     if(tr->symbol == ElseStmt){
-      else_stmt(tr, scope, tables, func_name, fp);
+      if_stmt(tr, scope, tables, func_name, fp);
       return;
     }
 
