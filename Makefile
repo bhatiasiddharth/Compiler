@@ -3,7 +3,7 @@ CFLAGS = -g -std=c99
 DEPS = parser.o lexer.o stack.o tree.o ast.o symtab.o analyzer.o codegen.o compiler.o
 
 SAMPLE = samples/06-codegen
-.PHONY = exec debug
+.PHONY = debug
 chrome:	run create-tree
 	@open -a "Google Chrome" $(SAMPLE)-syntax.svg
 
@@ -16,7 +16,7 @@ create-tree: $(SAMPLE)-syntax.tree $(SAMPLE)-parse.tree
 compiler: $(DEPS)
 	@$(CC) $(CFLAGS) $(DEPS) -o $@.out
 
-exec:
+exec: run
 	@scripts/masm.sh $(SAMPLE).asm
 
 %.o: %.c %.h

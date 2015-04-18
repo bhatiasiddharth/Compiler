@@ -160,10 +160,15 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
               // todo: check for types, lhs should not be array
               if(is_arithop(assignop->children[1]->symbol)) {
                 eval_expn(assignop->children[1], scope);
+                codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
               }else if(assignop->children[1]->symbol == ID) {
                 struct var_symbol* vs2 = lookup_var(assignop->children[1]->value.string);
                 // todo: mov for string; check for types on both lhs and rhs
                 codeseg_add("mov eax,  %s_%d", vs2->name, vs2->scope);
+                codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
+              }else if(assignop->children[1]->symbol == NUM) {
+                codeseg_add("push dword ptr %d", assignop->children[1]->value.inum);
+                codeseg_add("pop eax");
                 codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
               }
 
@@ -283,22 +288,34 @@ void print_stmt(struct tree_node* tr, int scope) {
   }
 }
 
-void loop_stmt(struct tree_node* tr, int scope, char* func_name, FILE* fp) {
-  struct symbol_table* temp_table = new_symtable(++current_scope);
-  push_table(temp_table);
-  for (int i = 0; i < tr->children_count; i++) {
-      st_fill(tr->children[i],current_scope,temp_table,func_name,fp);
-  }
-  struct symbol_table* copy_table=temp_table;
-  fprintf(fp, "While of %s()\n",func_name);
-  print_symtab(copy_table, fp, 1);
-  copy_table=copy_table->next;
-  while(copy_table!=NULL) {
-    print_symtab(copy_table, fp,0);
-    copy_table=copy_table->next;
-  }
-  fprintf(fp, "\n\n");
-  pop_table(temp_table);
+void loop_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char* func_name, FILE* fp) {
+  static int while_count = 0;
+  int whilenum = while_count;
+  while_count++;
+  codeseg_add("while_begin%d:", whilenum);
+  eval_expn(tr->children[1], scope);
+  codeseg_add("cmp eax, 1");
+  codeseg_add("jnz while_end%d", whilenum);
+  st_fill(tr->children[2], scope, tables, func_name, fp);
+  codeseg_add("jmp while_begin%d", whilenum);
+  codeseg_add("while_end%d:", whilenum);
+
+
+  // struct symbol_table* temp_table = new_symtable(++current_scope);
+  // push_table(temp_table);
+  // for (int i = 0; i < tr->children_count; i++) {
+  //     st_fill(tr->children[i],current_scope,temp_table,func_name,fp);
+  // }
+  // struct symbol_table* copy_table=temp_table;
+  // fprintf(fp, "While of %s()\n",func_name);
+  // print_symtab(copy_table, fp, 1);
+  // copy_table=copy_table->next;
+  // while(copy_table!=NULL) {
+  //   print_symtab(copy_table, fp,0);
+  //   copy_table=copy_table->next;
+  // }
+  // fprintf(fp, "\n\n");
+  // pop_table(temp_table);
 }
 
 void func_defn_stmt(struct tree_node* tr, int scope, FILE* fp) {
@@ -404,7 +421,7 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
 
     // loop stmt
     if(tr->symbol == LoopStmt) {
-      loop_stmt(tr, scope, func_name, fp);
+      loop_stmt(tr, scope, tables, func_name, fp);
       return;
     }
 
