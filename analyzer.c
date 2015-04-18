@@ -6,14 +6,13 @@ static struct fun_symbol* current_fun = NULL; /* which function's body are we in
 static int current_scope=2;
 
 enum var_type get_type(int symbol) {
-    if(symbol == NUM || symbol ==I32) return T_INT;
+    if(symbol == NUM || symbol == I32) return T_INT;
     if(symbol == STRL || symbol == STRING) return T_STR;
     if(symbol == CHARL || symbol == CHAR ) return T_CHAR;
     if(symbol == TRUE || symbol == FALSE || symbol == BOOL) return T_BOOL;
-    if(symbol == FLOAT || symbol ==F32) return T_FLOAT;
+    if(symbol == FLOAT || symbol == F32) return T_FLOAT;
     // if(symbol == NUM) return T_GRID;
     // if(symbol == NUM) return T_ARRAY;
-
 
 }
 
@@ -59,6 +58,8 @@ void eval_expn(struct tree_node* tr, int scope) {
     }
 }
 
+
+
 void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* func_name,FILE* fp) {
     int i;
     int n = tr->children_count;
@@ -93,7 +94,7 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
                   type = T_INT;
                 }
 
-                dataseg_add(temp->value.string, scope, type, value);
+                dataseg_add(temp->value.string, scope, type, value, 1);
                 insert_var(temp->value.string, scope, tables->size++, type,value,1);
             }
             else {
@@ -105,7 +106,7 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
                 for (int i = 1; i < size; ++i) {
                     value[i-1] = temp->children[i]->value;
                 }
-                //dataseg_add(temp->value.string, scope, type, value);
+                dataseg_add(assignop->children[0]->value.string, scope, type, value, size-1);
                 insert_var(assignop->children[0]->value.string, scope, tables->size++, type, value, size-1);
 
             }
@@ -122,9 +123,7 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
                     union value* tvalue = (union value*) malloc(sizeof(union value));
                     *tvalue = assignop->children[i+1]->value;
                     type = get_type(assignop->children[i + 1]->symbol);
-                    dataseg_add(temp->children[i]->value.string, scope, type, tvalue);
-
-                    printf("> %s %d \n", temp->children[i]->value.string, scope);
+                    dataseg_add(temp->children[i]->value.string, scope, type, tvalue, 1);
                     insert_var(temp->children[i]->value.string, scope, tables->size++, type, tvalue,1);
                 }
             }
@@ -133,18 +132,30 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
 
 
     else if(tr->symbol == Stmt) { // assignment statement
-        if(tr->children[1]->symbol==ASSIGNOP)
+        if(tr->children[1]->symbol == ASSIGNOP)
         {
-
-            struct tree_node* assignop=tr->children[1];
+            struct tree_node* assignop = tr->children[1];
             temp = tr->children[0];
             if (temp->symbol == ID) {
                 if(assignop->children[0]->symbol != array){
                     // single assignment
+                    struct var_symbol* vs = lookup_var(temp->value.string);
+                    // todo: print error if symbol does not exist
 
-                    struct var_symbol* vs=lookup_var (temp->value.string);
+                    // code generate for single assignment
+                    // todo: check for types, lhs should not be array
+                    if(is_arithop(assignop->children[1]->symbol)) {
+                      eval_expn(assignop->children[1], scope);
+                    }else if(assignop->children[1]->symbol == ID) {
+                      struct var_symbol* vs2 = lookup_var(assignop->children[1]->value.string);
+                      // todo: mov for string; check for types on both lhs and rhs
+                      codeseg_add("mov eax,  %s_%d", vs2->name, vs2->scope);
+                      codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
+                    }
+
+                    // function call case
                     if(vs!=NULL)
-                    *(vs->value)=assignop->children[0]->value;
+                      *(vs->value) = assignop->children[0]->value;
 
                     else//function call with and without parameters
                     {

@@ -14,13 +14,13 @@ create-tree: $(SAMPLE)-syntax.tree $(SAMPLE)-parse.tree
 	@node tree-printer/main.js $(SAMPLE)-syntax.tree
 
 compiler: $(DEPS)
-	$(CC) $(CFLAGS) $(DEPS) -o $@.out
+	@$(CC) $(CFLAGS) $(DEPS) -o $@.out
 
 exec:
-	scripts/masm.sh $(SAMPLE).asm
+	@scripts/masm.sh $(SAMPLE).asm
 
 %.o: %.c %.h
-	$(CC) -c $(CFLAGS) $<
+	@$(CC) -c $(CFLAGS) $<
 
 debug:
 	lldb ./compiler.out $(SAMPLE).co

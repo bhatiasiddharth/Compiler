@@ -9,26 +9,31 @@ char* getreg(int reg) {
 	return reg_names[reg];
 }
 
-void value_tostr(int type, union value* value, char* strval) {
-	if(type == T_INT) {
-		sprintf(strval, "%d", value->inum);
-	}if(type == T_FLOAT) {
-		sprintf(strval, "%f", value->fnum);
-	}else if(type == T_BOOL) {
-		sprintf(strval, "%d", value->bool);
-	}else if(type == T_STR) {
-		sprintf(strval, "'%s', '$'", value->string);
+void value_tostr(int type, union value* value, int size, char* strval) {
+
+	for(int i = 0; i < size; i++) {
+		if(i >= 1) sprintf(strval + strlen(strval), ", ");
+		if(type == T_INT) {
+			sprintf(strval + strlen(strval), "%d", value[i].inum);
+		}if(type == T_FLOAT) {
+			sprintf(strval + strlen(strval), "%f", value[i].fnum);
+		}else if(type == T_BOOL) {
+			sprintf(strval + strlen(strval), "%d", value[i].bool);
+		}else if(type == T_STR) {
+			sprintf(strval + strlen(strval), "'%s', '$'", value[i].string);
+		}
 	}
 }
-void dataseg_add(char *identifier, int scope, int type, union value* value) {
+void dataseg_add(char *identifier, int scope, int type, union value* value, int size) {
 	char entry[MAX_LEN];
 	char storage_type[3];
 	char strval[MAX_LEN];
+	bzero(strval, MAX_LEN);
 	if(type == T_INT) {
 		strcpy(storage_type, "dd");
 	}else if (type == T_CHAR || type == T_BOOL || type == T_STR)
 		strcpy(storage_type, "db");
-	value_tostr(type, value, strval);
+	value_tostr(type, value, size, strval);
 	sprintf(entry, "%s_%d %s %s\n", identifier, scope, storage_type, strval);
 	strcat(dataseg, entry);
 }

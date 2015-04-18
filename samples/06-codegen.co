@@ -1,5 +1,10 @@
 main() {
 	let u = 20;
-	let x = 5 + (7 * 3 - 21 / 3);
-	print(x);
+	let k = 10;
+	print(k);
+	k = u;
+	print(k);
+	let z = [1, 2, 3, 4, 5];
+	let mut (i, n, sum) = (1, 0, 0);
+	(u, k) = (1, 2);
 }
