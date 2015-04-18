@@ -5,7 +5,7 @@
 typedef enum{GLOBAL, LOCAL, PARAM} Scope;
 extern char *strdup(const char *s);
 
-enum var_type {T_STR, T_ARRAY, T_INT, T_CHAR, T_FUN, T_GRID, T_FLOAT, T_BOOL};
+enum var_type {T_STR, T_INT, T_CHAR, T_FLOAT, T_BOOL, T_FUN, T_ARRAY, T_GRID};
  /* SIZE is the size of the hash table */
 #define SIZE 211
 /* SHIFT is the power of two used as multiplier in hash function  */
@@ -13,7 +13,7 @@ enum var_type {T_STR, T_ARRAY, T_INT, T_CHAR, T_FUN, T_GRID, T_FLOAT, T_BOOL};
 
 struct var_symbol {
      char* name;
-     Scope scope;
+     int scope;
      enum var_type type;
      int offset;
      // for string and array
@@ -28,7 +28,7 @@ struct var_symbol {
 
 struct symbol_table {
      int size;
-     Scope scope;
+     int scope;
      struct var_symbol* hashTable[SIZE];
      struct var_symbol* varList;
      struct symbol_table* next;

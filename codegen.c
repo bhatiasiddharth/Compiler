@@ -2,7 +2,7 @@
 
 // 0 - Empty, 1 = OCCUPIED
 int reg[REG_COUNT];
-char* reg_names[] = {"AX", "BX", "CX", "DX"};
+char* reg_names[4] = {"AX", "BX", "CX", "DX"};
 
 char dataseg[DATA_SIZE], codeseg[DATA_SIZE];
 char* getreg(int reg) {

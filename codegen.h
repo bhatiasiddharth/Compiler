@@ -16,6 +16,6 @@ enum registers{AX, BX, CX, DX };
 #define MACROS_FILE "codegen/utils.asm"
 
 int reg[REG_COUNT];
-char* reg_names[];
+char* reg_names[4];
 char dataseg[DATA_SIZE], codeseg[DATA_SIZE];
 #endif

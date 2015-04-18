@@ -7,4 +7,7 @@ main() {
 	let z = [1, 2, 3, 4, 5];
 	let mut (i, n, sum) = (1, 0, 0);
 	(u, k) = (1, 2);
+	//while(a == 4) {
+		//print(k);
+	//}
 }
