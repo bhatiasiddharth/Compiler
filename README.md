@@ -28,7 +28,7 @@ Deadline - April 20
 Instructions
 =============
 
-	make && ./parser < samples/01-sum.co
+	make
 
 ---
 
@@ -37,5 +37,6 @@ TODO
 - Accept negative numbers in lexer/parser
 - Accept some special symbols in STRL like >, =, <, !
 - Remove OSQUARE from AST
+- Fix Array index in AST
 - limit number values
 - limit identifier and string length
