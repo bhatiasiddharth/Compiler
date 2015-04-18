@@ -26,7 +26,36 @@ int is_arithop(int symbol) {
   return 0;
 }
 
+char* get_relop(int symbol) {
+  static char op[4];
+  if(symbol == LE) {
+    strcpy(op, "jle");
+    return op;
+  }
+  if(symbol == LT) {
+    strcpy(op, "jl");
+    return op;
+  }
+  if(symbol == GE) {
+    strcpy(op, "jge");
+    return op;
+  }
+  if(symbol == GT) {
+    strcpy(op, "ja");
+    return op;
+  }
+  if(symbol == EQ) {
+    strcpy(op, "jae");
+    return op;
+  }
+  if(symbol == NE) {
+    strcpy(op, "jne");
+    return op;
+  }
+  return NULL;
+}
 void eval_expn(struct tree_node* tr, int scope) {
+    static int rel_count = 0;
     if(tr->children_count > 0) {
       eval_expn(tr->children[0], scope);
       eval_expn(tr->children[1], scope);
@@ -69,12 +98,20 @@ void eval_expn(struct tree_node* tr, int scope) {
       codeseg_add("pop eax  ; not");
       codeseg_add("not eax");
       codeseg_add("push eax");
-    }else if(tr->symbol == LT) {
+    }else if(tr->symbol == LT || tr->symbol == LE || tr->symbol == GT ||
+             tr->symbol == GE || tr->symbol == EQ || tr->symbol == NE) {
+     int relnum = rel_count;
       codeseg_add("pop ebx  ; LT");
       codeseg_add("pop eax");
       codeseg_add("cmp eax, ebx");
-      codeseg_add("eval_LT ; get result in eax");
+      codeseg_add("%s rel_true%d", get_relop(tr->symbol), relnum);
+      codeseg_add("mov eax, 0");
+      codeseg_add("jmp rel_end%d", relnum);
+      codeseg_add("rel_true%d:", relnum);
+      codeseg_add("mov eax,1");
+      codeseg_add("rel_end%d:", relnum);
       codeseg_add("push eax");
+      rel_count++;
     }
     //LE, EQ, GE , NE
     //LT GT
