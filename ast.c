@@ -1,17 +1,17 @@
 #include "ast.h"
 
-struct tree_node* removeTerm(struct tree_node* tr) 
+struct tree_node* removeTerm(struct tree_node* tr)
 {
      int i=0;
      int newchildren_count = tr->children_count;
 
      while(i < newchildren_count)
-     {  
+     {
            int v = tr->children[i]->symbol;
            int c = tr->children[i]->children_count;
-       
-        if((v < 100)||(v>=100 && c==0) ) 
-        { 
+
+        if((v < 100)||(v>=100 && c==0) )
+        {
 
            if( v<=USELESS_END ||(v >= Program && c==0) || v==IF || v==ELSE || v==ELSEIF)
            {
@@ -60,7 +60,7 @@ struct tree_node* remove_Chaining(struct tree_node* tr)
             int n = tr->children_count;
             while(i < n)
             {
-                if(tr->children[i]->children_count > 0) 
+                if(tr->children[i]->children_count > 0)
                     remove_Chaining(tr->children[i]);
                 i++;
             }
@@ -68,7 +68,7 @@ struct tree_node* remove_Chaining(struct tree_node* tr)
     return tr;
 }
 
-struct tree_node* removeNonTerm(struct tree_node* tr) 
+struct tree_node* removeNonTerm(struct tree_node* tr)
 {
      int children_count = tr->children_count;
      int k=children_count-1;
@@ -76,7 +76,7 @@ struct tree_node* removeNonTerm(struct tree_node* tr)
      {
      	int symbol = tr->children[k]->symbol;
 
-	     if(symbol==multAssn || symbol==moreStmts || symbol==moreRows || symbol==moreNums || symbol==typeList || symbol==parameterList || symbol==IDList )
+	     if(symbol==Index || symbol==multAssn || symbol==moreStmts || symbol==moreRows || symbol==moreNums || symbol==typeList || symbol==parameterList || symbol==IDList )
 	     {
 	     	int j;
 	     	int newcount=k;
@@ -89,17 +89,17 @@ struct tree_node* removeNonTerm(struct tree_node* tr)
 	        }
 	        tr->children_count=newcount;
 	        removeNonTerm(tr);
-	        
+
 	     }
 
 	     else
 		{
 			for(int i=0;i<children_count;i++)
 			tr->children[i] = removeNonTerm(tr->children[i]);
-		
+
 		}
      }
-     
+
 
 
   return tr;
@@ -111,7 +111,7 @@ struct tree_node* removeExtra(struct tree_node* tr)
    int i=0;
    int newchildren_count = tr->children_count;
    int flag = 0;
-   
+
    while(i < newchildren_count)
    {
    //printf("in remove extra : %d : %s\n", i, mapTo[tr->symbol]);
@@ -133,12 +133,12 @@ struct tree_node* removeExtra(struct tree_node* tr)
         free(ptr);
       }
 
-      else 
+      else
       {
         if(v >= 100) removeExtra(tr->children[i]);
         i++;
       }
-      
+
    }
    tr->children_count = newchildren_count;
    return tr;
@@ -146,11 +146,11 @@ struct tree_node* removeExtra(struct tree_node* tr)
 
 struct tree_node* arithmeticPass(struct tree_node* tr)
 {
-    
+
         if(tr->symbol == arithExpn || tr->symbol == arithTerm)//ae,at
         {
             tr->symbol = tr->children[1]->symbol; //PLUS/MINUS, MUL/DIV
-            tr->children[1] = tr->children[1]->children[0]; 
+            tr->children[1] = tr->children[1]->children[0];
         }
         if(tr->children_count > 0 ) //not necassarily a non-terminal
         {
@@ -158,7 +158,7 @@ struct tree_node* arithmeticPass(struct tree_node* tr)
             int n = tr->children_count;
             while(i < n)
             {
-                if(tr->children[i]->children_count > 0) 
+                if(tr->children[i]->children_count > 0)
                     arithmeticPass(tr->children[i]);
                 i++;
             }

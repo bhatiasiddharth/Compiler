@@ -27,16 +27,21 @@ Deadline - April 20
 
 Instructions
 =============
+To create asm
 
 	make
+
+To execute asm
+
+	make exec
 
 ---
 
 TODO
 ======
-- Accept negative numbers in lexer/parser
 - Accept some special symbols in STRL like >, =, <, !
-- Remove OSQUARE from AST
-- Fix Array index in AST
+- Accept negative numbers in lexer/parser
+~~ - Remove OSQUARE from AST ~~
+~~ - Fix Array index in AST ~~
 - limit number values
 - limit identifier and string length

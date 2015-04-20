@@ -2,6 +2,9 @@
 _true db 'true', '$'
 _false db 'false', '$'
 _printstr db 80 dup('$')
+_scanmax db 80
+_scancount db ?
+_scanstr db 80 dup('$')
 ; utility macros and procedures
 ; print 32 bit number
 printnum macro number
@@ -74,4 +77,29 @@ printbool macro bool
   _print_true:
   printstr _true
   _print_end:
-endm
+endm printbool
+
+
+scanstr macro strval
+  local _x1
+  lea dx, _scanmax
+  mov ah, 0ah
+  int 21h
+  lea si, _scanstr
+  lea di, strval
+  mov cx, 80
+  rep movsb
+  lea si, _scanstr
+  mov cx, 80
+  mov al, '$'
+  _x1:
+  mov [si], al
+  loop _x1
+
+  mov dl, 13d     ;Carriage Return
+  mov ah, 2h
+  int 21h
+  mov dl, 10d     ;Line Feed
+  mov ah, 2h
+  int 21h
+endm scanstr

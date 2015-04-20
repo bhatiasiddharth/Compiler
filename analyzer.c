@@ -61,7 +61,8 @@ void eval_expn(struct tree_node* tr, int scope) {
       eval_expn(tr->children[1], scope);
     }
     if(tr->symbol == ID) {
-      codeseg_add("push %s_%d", tr->value.string, scope);
+      struct var_symbol* vs = lookup_var(tr->value.string);
+      codeseg_add("push %s_%d", tr->value.string, vs->scope);
     }else if(tr->symbol == NUM) {
       codeseg_add("push dword ptr %d", tr->value.inum);
     }else if(tr->symbol == PLUS) {
@@ -101,7 +102,7 @@ void eval_expn(struct tree_node* tr, int scope) {
     }else if(tr->symbol == LT || tr->symbol == LE || tr->symbol == GT ||
              tr->symbol == GE || tr->symbol == EQ || tr->symbol == NE) {
      int relnum = rel_count;
-      codeseg_add("pop ebx  ; LT");
+      codeseg_add("pop ebx  ; %s", token_names[tr->symbol]);
       codeseg_add("pop eax");
       codeseg_add("cmp eax, ebx");
       codeseg_add("%s rel_true%d", get_relop(tr->symbol), relnum);
@@ -167,10 +168,8 @@ void declaration_stmt(struct tree_node* tr, int scope) {
 
   else {
       // multiple declarations
-      if(temp->symbol == typeList)
-      {
-          for (int i = 0; i < temp->children_count; ++i)
-          {
+      if(temp->symbol == typeList) {
+          for (int i = 0; i < temp->children_count; ++i) {
               union value* tvalue = (union value*) malloc(sizeof(union value));
               *tvalue = assignop->children[i+1]->value;
               type = get_type(assignop->children[i + 1]->symbol);
@@ -311,20 +310,43 @@ void print_stmt(struct tree_node* tr, int scope) {
   // if identifier - lookup in table and print value
   else if (symbol == ID) {
     //todo - check variable exists
-    type = getvar_type(tr->children[1]->value.string);
-    if (type == T_STR) {
-      codeseg_add("printstr %s_%d", tr->children[1]->value.string, scope);
+    struct var_symbol* vs = lookup_var (tr->children[1]->value.string);
+    if (vs->type == T_STR) {
+      codeseg_add("printstr %s_%d", tr->children[1]->value.string, vs->scope);
     }
-    else if (type == T_INT) {
-      codeseg_add("printnum %s_%d", tr->children[1]->value.string, scope);
+    else if (vs->type == T_INT) {
+      codeseg_add("printnum %s_%d", tr->children[1]->value.string, vs->scope);
     }
-    else if (type == T_FLOAT) {}
-    else if (type == T_BOOL) {
-      codeseg_add("printbool %s_%d", tr->children[1]->value.string, scope);
+    else if (vs->type == T_FLOAT) {}
+    else if (vs->type == T_BOOL) {
+      codeseg_add("printbool %s_%d", tr->children[1]->value.string, vs->scope);
     }
   }
 }
 
+void scan_stmt(struct tree_node* tr, int scope) {
+  static int strcount = 0;
+  int type;
+  int symbol = tr->children[1]->symbol;
+
+  if(symbol == ID) {
+    struct var_symbol* vs = lookup_var(tr->children[1]->value.string);
+    if(vs != NULL) {
+      if(vs->type == T_INT) {
+        // scan int
+        codeseg_add("scannum %s_%d", tr->children[1]->value.string, scope);
+      }else if(vs->type == T_STR) {
+        // scan num
+        codeseg_add("scanstr %s_%d", tr->children[1]->value.string, scope);
+      }
+
+    }else {
+      // todo: variable does not exist
+    }
+  }else {
+    // todo: scan only ID
+  }
+}
 void loop_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char* func_name, FILE* fp) {
   static int while_count = 0;
   int whilenum = while_count;
@@ -333,26 +355,25 @@ void loop_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, cha
   eval_expn(tr->children[1], scope);
   codeseg_add("cmp eax, 1");
   codeseg_add("jnz while_end%d", whilenum);
-  st_fill(tr->children[2], scope, tables, func_name, fp);
+
+  struct symbol_table* temp_table = new_symtable(++current_scope);
+  push_table(temp_table);
+
+  st_fill(tr->children[2], current_scope, temp_table, func_name,fp);
+
+  struct symbol_table* copy_table=temp_table;
+  fprintf(fp, "While of %s()\n",func_name);
+  print_symtab(copy_table, fp, 1);
+  copy_table=copy_table->next;
+  while(copy_table!=NULL) {
+    print_symtab(copy_table, fp,0);
+    copy_table=copy_table->next;
+  }
+  fprintf(fp, "\n\n");
+  pop_table(temp_table);
+
   codeseg_add("jmp while_begin%d", whilenum);
   codeseg_add("while_end%d:", whilenum);
-
-
-  // struct symbol_table* temp_table = new_symtable(++current_scope);
-  // push_table(temp_table);
-  // for (int i = 0; i < tr->children_count; i++) {
-  //     st_fill(tr->children[i],current_scope,temp_table,func_name,fp);
-  // }
-  // struct symbol_table* copy_table=temp_table;
-  // fprintf(fp, "While of %s()\n",func_name);
-  // print_symtab(copy_table, fp, 1);
-  // copy_table=copy_table->next;
-  // while(copy_table!=NULL) {
-  //   print_symtab(copy_table, fp,0);
-  //   copy_table=copy_table->next;
-  // }
-  // fprintf(fp, "\n\n");
-  // pop_table(temp_table);
 }
 
 void func_defn_stmt(struct tree_node* tr, int scope, FILE* fp) {
@@ -380,7 +401,7 @@ void func_defn_stmt(struct tree_node* tr, int scope, FILE* fp) {
   pop_table(temp_table);
 }
 
-void if_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char* func_name, FILE* fp) {
+void ifelse_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char* func_name, FILE* fp) {
   static int if_count = 0;
   // codegen for boolean expn
   eval_expn(tr->children[0], scope);
@@ -388,39 +409,37 @@ void if_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char*
   int labelnum = if_count;
   if_count++;
   codeseg_add("jnz if_begin%d", labelnum);
-  // codegen for if block
-  st_fill(tr->children[1], scope, tables, func_name, fp);
-  codeseg_add("jmp if_end%d", labelnum);
-  codeseg_add("if_begin%d:", labelnum);
-  // else segment code
-  if(tr->children[2] != NULL)
-  st_fill(tr->children[2], scope, tables, func_name, fp);
-  codeseg_add("if_end%d:", labelnum);
 
-  // for (int i = 1; i < tr->children_count; i++) {
-  //     struct symbol_table* temp_table = new_symtable(++current_scope);
-  //     struct symbol_table* copy_table = temp_table;
-  //     push_table(temp_table);
-  //     st_fill(tr->children[i], current_scope, temp_table, func_name, fp);
-  //
-  //     fprintf(fp, "If Else of %s()\n",func_name);
-  //     print_symtab(copy_table, fp,1);
-  //     copy_table = copy_table->next;
-  //
-  //     while(copy_table != NULL) {
-  //       print_symtab(copy_table, fp,0);
-  //       copy_table = copy_table->next;
-  //     }
-  //     fprintf(fp, "\n\n");
-  //     pop_table(temp_table);
-  // }
+  for (int i = 1; i < tr->children_count; i++) {
+      struct symbol_table* temp_table = new_symtable(++current_scope);
+      struct symbol_table* copy_table = temp_table;
+      push_table(temp_table);
+
+      st_fill(tr->children[i], current_scope, temp_table, func_name, fp);
+      if(i == 1) {
+        // codegen for if block
+        codeseg_add("jmp if_end%d", labelnum);
+        codeseg_add("if_begin%d:", labelnum);
+      }
+      fprintf(fp, "If Else of %s()\n",func_name);
+      print_symtab(copy_table, fp,1);
+      copy_table = copy_table->next;
+
+      while(copy_table != NULL) {
+        print_symtab(copy_table, fp,0);
+        copy_table = copy_table->next;
+      }
+      fprintf(fp, "\n\n");
+      pop_table(temp_table);
+  }
+  codeseg_add("if_end%d:", labelnum);
 }
 
 void else_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char* func_name, FILE* fp) {
   st_fill(tr->children[0],scope,tables,func_name,fp);
   st_fill(tr->children[1],scope,tables,func_name,fp);
 
-  struct symbol_table* temp_table= new_symtable(++current_scope);
+  struct symbol_table* temp_table = new_symtable(++current_scope);
   push_table(temp_table);
   st_fill(tr->children[2],current_scope,temp_table,func_name,fp);
   struct symbol_table* copy_table=temp_table;
@@ -470,20 +489,26 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
 
     // if stmt
     if(tr->symbol == IfStmt) {
-        if_stmt(tr, scope, tables, func_name, fp);
+        ifelse_stmt(tr, scope, tables, func_name, fp);
         return;
     }
 
     // else stmt
     // need only 1 more new scope
     if(tr->symbol == ElseStmt){
-      if_stmt(tr, scope, tables, func_name, fp);
+      ifelse_stmt(tr, scope, tables, func_name, fp);
       return;
     }
 
     // print statements
     if(tr->symbol == OStmt) {
       print_stmt(tr, scope);
+      return;
+    }
+
+    // print statements
+    if(tr->symbol == IStmt) {
+      scan_stmt(tr, scope);
       return;
     }
 

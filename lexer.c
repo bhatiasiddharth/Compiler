@@ -54,14 +54,14 @@ int gettok(FILE *fp, struct token* token) {
   // BUFFERED I/O
   if(count == 0) {
     token_buffer = (char*) malloc(2 * BUFFER_SIZE * sizeof(char));
-    getdelim(&token_buffer, &len, 0, fp);
+    getdelim(&token_buffer, &startlen, 0, fp);
   }else if(count > BUFFER_SIZE) {
     token_buffer = token_buffer + BUFFER_SIZE;
     count = count % BUFFER_SIZE;
     getdelim(&token_buffer, &len, 0, fp);
   }
   bzero(token->lexeme, MAX_LEN);
-  
+
   // Skip any whitespace.
   while (isspace(token_buffer[count])) {
     if(token_buffer[count] == '\n') {
@@ -96,7 +96,7 @@ int gettok(FILE *fp, struct token* token) {
       token->type = FALSE;
       token->value.bool = 0;
     }
-    
+
     colnum += strlen(token->lexeme);
 
     // printf("count - %d %c \n", count, token_buffer[count]);
@@ -205,7 +205,7 @@ int gettok(FILE *fp, struct token* token) {
     while (token_buffer[++count] && (isalnum(token_buffer[count]) || isspace(token_buffer[count]))) {
       build_lexeme(token->lexeme, token_buffer[count]);
     }
-    
+
     strcpy(token->value.string, token->lexeme);
     if(token_buffer[count] == '"'){
       count++;
@@ -233,15 +233,15 @@ int gettok(FILE *fp, struct token* token) {
   }
 
   for(i = 0; i < SINGLE_TKNS; i++) {
-    if(token_buffer[count] == single_token_map[i][0]){          
+    if(token_buffer[count] == single_token_map[i][0]){
       token->type = single_token_map[i][1];
       build_lexeme(token->lexeme, token_buffer[count]);
       count++;
-      colnum += 1;      
+      colnum += 1;
       return 1;
     }
   }
-    
+
   if(token_buffer[count] != 0){
     // Error - Invalid token
     printf("(%d, %d) Error - Invalid token\n", linenum, colnum);
@@ -256,5 +256,5 @@ void write_token(FILE *fp, struct token* token) {
     fprintf(fp, "%-20s\t", token_names[token->type]);
     if(token_hasvalue(token->type))
         print_value(fp, token->type, token->value);
-    fprintf(fp, "\n");  
+    fprintf(fp, "\n");
 }
