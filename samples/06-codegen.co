@@ -5,6 +5,35 @@ main() {
 	k = u;
 	print(k);
 	let z = [1, 2, 3, 4, 5];
+	let mut (i, n, sum) = (1, 0, 0);
+	(u, k) = (1, 2);
+	// scoping issue
+	//while(a == 4) {
+		//print(k);
+	//}
+	print(120);
+	print("foo");
+	print("Hello Worlds");
+	if(u < 20) {
+		print("u is less than 20");
+		print(500);
+	}elseif(k < 10) {
+		print("u is greater than 20");
+		print("Okay");
+	}else {
+		print("nothing matched");
+	}
 
-	print(z[4]);
+	u = 10;
+	while(u <> 5) {
+		print(u);
+		u = u - 1;
+	}
+
+	//let x = -3;
+	//x = 5-3;
+
+	let in = " ";
+	scan(in);
+	print(in);
 }
