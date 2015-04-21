@@ -680,10 +680,10 @@ void scan_stmt(struct tree_node* tr, int scope) {
     if(vs != NULL) {
       if(vs->type == T_INT) {
         // scan int
-        codeseg_add("scannum %s_%d", tr->children[1]->value.string, scope);
+        codeseg_add("scannum %s_%d", tr->children[1]->value.string, vs->scope);
       }else if(vs->type == T_STR) {
         // scan num
-        codeseg_add("scanstr %s_%d", tr->children[1]->value.string, scope);
+        codeseg_add("scanstr %s_%d", tr->children[1]->value.string, vs->scope);
       }
 
     }else {

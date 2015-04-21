@@ -5,6 +5,7 @@ _printstr db 80 dup('$')
 _scanmax db 80
 _scancount db ?
 _scanstr db 80 dup('$')
+_scannum db 80 dup('$')
 ; utility macros and procedures
 ; print 32 bit number
 printnum macro number
@@ -103,3 +104,43 @@ scanstr macro strval
   mov ah, 2h
   int 21h
 endm scanstr
+
+scannum macro numval
+  local _x1, _x3, _end
+  scanstr _scannum
+  lea si, _scannum
+  lea di, numval
+  mov bl, '$'
+  ; number of digits
+  mov cl, _scancount
+  dec cl
+  push dword ptr 0
+  _x1:
+  ; loop till $
+  cmp [si+1], bl
+  jz  _end
+  mov eax, 0
+  mov ebx, 0
+  mov bl, byte ptr [si]
+  sub bl, '0'
+  add eax, ebx
+  mov ch, 0
+  ; multiply with 10^number of digits
+  mov ebx, 10
+  _x2:
+  cmp ch, cl
+  jge _x3
+  mul ebx
+  inc ch
+  jmp _x2
+  _x3:
+  dec cl
+  inc si
+  pop edx
+  add edx, eax
+  push edx
+  mov bl, '$'
+  jmp _x1
+  _end:
+  mov [di], edx
+endm scannum
