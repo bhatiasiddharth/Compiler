@@ -147,7 +147,7 @@ int insert_var(char * name, Scope scope, int offset, enum var_type type, union v
 
      if (l != NULL){
         fprintf(stderr, "Duplicate declarations of variable: %s.\n", name);
-        return 1;
+        exit(1);
      }
 
       l = (struct var_symbol*) malloc(sizeof(struct var_symbol));
@@ -185,7 +185,7 @@ int insert_fun(char* name, struct symbol_table* st, int num, enum var_type type)
      /*Check duplication*/
      if(lookup_fun(name) != NULL){
         fprintf(stderr, "Duplicate declarations of function: %s\n", name);
-        return 1;
+        exit(1);
      }
      fs = (struct fun_symbol*)malloc(sizeof(struct fun_symbol));
      if(fs == NULL){

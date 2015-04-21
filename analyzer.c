@@ -54,38 +54,68 @@ char* get_relop(int symbol) {
   }
   return NULL;
 }
-void eval_expn(struct tree_node* tr, int scope) {
+int eval_expn(struct tree_node* tr, int scope) {
     static int rel_count = 0;
+    int type1,type2;
     if(tr->children_count > 0) {
-      eval_expn(tr->children[0], scope);
-      eval_expn(tr->children[1], scope);
+      type1=eval_expn(tr->children[0], scope);
+      type2=eval_expn(tr->children[1], scope);
+      if(type1!=type2)
+        {
+            fprintf(stderr, "Types don't match\n");
+            exit(1);
+        }
     }
     if(tr->symbol == ID) {
       struct var_symbol* vs = lookup_var(tr->value.string);
+      if(vs==NULL)
+      {
+        fprintf(stderr, "Variable: %s should be declared before use.\n", tr->value.string);
+        exit(1);
+      }
       codeseg_add("push %s_%d", tr->value.string, vs->scope);
+      return vs->type;
     }else if(tr->symbol == NUM) {
       codeseg_add("push dword ptr %d", tr->value.inum);
-    }else if(tr->symbol == PLUS) {
+      return T_INT;
+    }else if(tr->symbol == FLOAT) {
+      return T_FLOAT;
+    }
+    else if(tr->symbol == BOOL || tr->symbol == TRUE || tr->symbol == FALSE) {
+      return T_BOOL;
+    }
+
+
+    else if(tr->symbol == PLUS) {
       codeseg_add("pop eax  ; add");
       codeseg_add("pop ebx");
       codeseg_add("add eax, ebx");
       codeseg_add("push eax");
+      return type1;
     }else if(tr->symbol == MINUS) {
       codeseg_add("pop ebx  ; subtract");
       codeseg_add("pop eax");
       codeseg_add("sub eax, ebx");
       codeseg_add("push eax");
+      return type1;
     }else if(tr->symbol == MUL) {
       codeseg_add("pop eax  ; multiply");
       codeseg_add("pop ebx");
       codeseg_add("mul ebx");
       codeseg_add("push eax");
+      return type1;
     }else if(tr->symbol == DIV) {
       codeseg_add("pop ebx  ; division");
       codeseg_add("pop eax");
       codeseg_add("div ebx");
       codeseg_add("push eax");
-    }else if(tr->symbol == AND) {
+      return type1;
+    }
+
+    
+
+
+    else if(tr->symbol == AND) {
       codeseg_add("pop ebx  ; and");
       codeseg_add("pop eax");
       codeseg_add("and eax, ebx");
@@ -116,6 +146,7 @@ void eval_expn(struct tree_node* tr, int scope) {
     }
     //LE, EQ, GE , NE
     //LT GT
+    return T_BOOL;
 }
 
 void declaration_stmt(struct tree_node* tr, int scope) {
@@ -140,10 +171,10 @@ void declaration_stmt(struct tree_node* tr, int scope) {
 
           if(is_arithop(assignop->children[1]->symbol)) {
             // print_symbol(stdout, assignop->children[1]->symbol, *value);
-            eval_expn(assignop->children[1], scope);
+            type=eval_expn(assignop->children[1], scope);
             codeseg_add("pop eax");
             codeseg_add("mov %s_%d, eax", temp->value.string, scope);
-            type = T_INT;
+            //type = T_INT;
           }
 
           dataseg_add(temp->value.string, scope, type, value, 1);
@@ -185,34 +216,218 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
   if(tr->children[1]->symbol == ASSIGNOP)
   {
       struct tree_node* assignop = tr->children[1];
+      struct tree_node* returnvar = tr->children[0];
       temp = tr->children[0];
-      if (temp->symbol == ID) {
-          if(assignop->children[0]->symbol != array){
+      if (temp->symbol == ID)
+      {
+          if(assignop->children[0]->symbol != array)
+
+
+          {
               // single assignment
               struct var_symbol* vs = lookup_var(temp->value.string);
+              if(vs==NULL)
+              {
+                fprintf(stderr, "Variable: %s should be declared before use.\n", temp->value.string);
+                exit(1);
+              }
               // todo: print error if symbol does not exist
 
               // code generate for single assignment
               // todo: check for types, lhs should not be array
-              if(is_arithop(assignop->children[1]->symbol)) {
-                eval_expn(assignop->children[1], scope);
+              if(is_arithop(assignop->children[1]->symbol))
+
+              {
+
+                int type=eval_expn(assignop->children[1], scope);
+                if(vs->type!=type)
+                {
+                    fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);   
+                        exit(1);
+                }
                 codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
-              }else if(assignop->children[1]->symbol == ID) {
+              }
+
+
+
+              else if(assignop->children[1]->symbol == ID)
+
+              {
                 struct var_symbol* vs2 = lookup_var(assignop->children[1]->value.string);
+                if(vs2==NULL)
+                {
+                  struct fun_symbol* tempfun=lookup_fun(assignop->children[1]->value.string);
+                  if(tempfun==NULL)
+                  {
+                    //of form x= add(); or x=y;
+                     fprintf(stderr, "Variable: %s should be declared before use.\n", assignop->children[1]->value.string);   
+                      exit(1);  
+                  }
+                  
+                }
+
+                if(vs2!=NULL)
+                {
+                    if(vs2->type!=vs->type)
+                    {
+                        fprintf(stderr, "Type of %s does not match type of %s.\n", vs->name, vs2->name);   
+                        exit(1);
+                    }
+                }
+
                 // todo: mov for string; check for types on both lhs and rhs
                 codeseg_add("mov eax,  %s_%d", vs2->name, vs2->scope);
                 codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
-              }else if(assignop->children[1]->symbol == NUM) {
+              }
+
+
+              
+
+
+              else if(assignop->children[1]->symbol == NUM)
+
+              {
+                if(vs->type!=get_type(assignop->children[1]->symbol))
+                {
+                    fprintf(stderr, "Type of %s does not match type of.\n", vs->name);
+                    exit(1);
+                }
                 codeseg_add("push dword ptr %d", assignop->children[1]->value.inum);
                 codeseg_add("pop eax");
                 codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
               }
 
+              else if(assignop->children[1]->symbol == FLOAT || assignop->children[1]->symbol == CHARL || assignop->children[1]->symbol == STRL || assignop->children[1]->symbol == TRUE || assignop->children[1]->symbol == FALSE || assignop->children[1]->symbol == BOOL)
+              {
+                if(vs->type!=get_type(assignop->children[1]->symbol))
+                {
+                    fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
+                    exit(1);
+                }
+              }
+
+
               // function call case
               if(vs!=NULL)
+              {
                 *(vs->value) = assignop->children[0]->value;
 
-              else//function call with and without parameters
+                  struct fun_symbol* tempfun=lookup_fun(assignop->children[0]->children[0]->value.string);
+                  if(assignop->children[0]->symbol==relType)
+                  {
+
+                    if(assignop->children[0]->children[1]->symbol==MethodCall)
+                    {
+                      struct fun_symbol* tempfun=lookup_fun(assignop->children[0]->children[1]->children[0]->value.string);
+                      if(tempfun==NULL)
+                      {
+                          //of form x= a.add(); or x= a.add(2,4);
+                          fprintf(stderr, "Function: %s should be declared before use.\n",assignop->children[0]->children[1]->children[0]->value.string);
+                          exit(1);
+                      }  
+
+                      if(tempfun->param_num!=assignop->children[0]->children[1]->children_count-1)
+                      {
+                        fprintf(stderr, "Function: %s mismatch parameter count.\n",assignop->children[0]->children[1]->children[0]->value.string);
+                        exit(1);
+                      }
+
+
+                      for (int i = 0; i < tempfun->param_num; ++i)
+                      {
+                          struct var_symbol* vs=lookup_var_offset(tempfun->symbolTable,i);
+                          if(vs!=NULL)
+                          { 
+
+                            struct var_symbol* vs2 = lookup_var (assignop->children[0]->children[1]->children[i+1]->value.string);
+                            if(vs2==NULL)
+                            {
+                                if( get_type(assignop->children[0]->children[1]->children[i+1]->symbol) != vs->type)
+                                {
+                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",assignop->children[0]->children[1]->children[0]->value.string,i+1);
+                                   exit(1);
+                                }
+                            }
+                            else
+                            {
+                                if( vs2->type != vs->type)
+                                {
+                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",assignop->children[0]->children[1]->children[0]->value.string,i+1);
+                                   exit(1);
+                                }
+                            }
+                          }
+                      }
+
+                       struct var_symbol* vs3 = lookup_var (returnvar->value.string);
+                      if(vs3->type != tempfun->type)
+                      {
+                        fprintf(stderr, "Function: %s return type mismatch.\n",assignop->children[0]->children[1]->children[0]->value.string);
+                          exit(1);
+                      }
+
+
+
+                    }
+
+                    else
+                    {
+                      struct fun_symbol* tempfun=lookup_fun(assignop->children[0]->children[0]->value.string);
+                      if(tempfun==NULL)
+                      {
+                          //of form x= add(3,4);
+                          fprintf(stderr, "Function: %s should be declared before use.\n",assignop->children[0]->children[0]->value.string);
+                          exit(1);
+                      }   
+                      if(tempfun->param_num!=assignop->children[0]->children_count-1)
+                      {
+                        fprintf(stderr, "Function: %s mismatch parameter count.\n",assignop->children[0]->children[0]->value.string);
+                        exit(1);
+                      }
+
+
+                      
+                      for (int i = 0; i < tempfun->param_num; ++i)
+                      {
+                          struct var_symbol* vs=lookup_var_offset(tempfun->symbolTable,i);
+                          if(vs!=NULL)
+                          { 
+
+                            struct var_symbol* vs2 = lookup_var (assignop->children[0]->children[i+1]->value.string);
+                            if(vs2==NULL)
+                            {
+                                if( get_type(assignop->children[0]->children[i+1]->symbol) != vs->type)
+                                {
+                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",assignop->children[0]->children[0]->value.string,i+1);
+                                   exit(1);
+                                }
+                            }
+                            else
+                            {
+                                if( vs2->type != vs->type)
+                                {
+                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",assignop->children[0]->children[0]->value.string,i+1);
+                                   exit(1);
+                                }
+                            }
+                          }
+                      }
+
+                       struct var_symbol* vs3 = lookup_var (returnvar->value.string);
+                      if(vs3->type != tempfun->type)
+                      {
+                        fprintf(stderr, "Function: %s return type mismatch.\n",assignop->children[0]->children[0]->value.string);
+                          exit(1);
+                      }
+
+
+                    }
+
+                      
+                  }
+              }
+
+              else
               {
                   struct fun_symbol* tempfun=lookup_fun(assignop->children[0]->value.string);
                   if(tempfun!=NULL)
@@ -223,12 +438,20 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
                   {
 
                       tempfun=lookup_fun(assignop->children[0]->children[0]->value.string);
+
+
+
                       if(tempfun!=NULL)
                       {
                           //call function in code gen
                           for (int i = 1; i < assignop->children[0]->children_count; ++i)
                           {
                               struct var_symbol* vs1=lookup_var_offset(tempfun->symbolTable,i-1);
+                              if(vs1==NULL)
+                              {
+                                fprintf(stderr, "Variable: should be declared before use.\n");
+                                exit(1);
+                              }
                               *(vs1->value)=assignop->children[0]->children[i]->value;
                           }
 
@@ -237,7 +460,13 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
                       }
                   }
               }
+
+
+
           }
+
+
+
           else {
               // array assignment
 
@@ -246,6 +475,11 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
               int size = temp->children_count;
 
               struct var_symbol* vs=lookup_var (tr->children[0]->value.string);
+              if(vs==NULL)
+              {
+                fprintf(stderr, "Variable: %s should be declared before use.\n", tr->children[0]->value.string);
+                exit(1);
+              }
               if(vs!=NULL)
               for (int i = 1; i < size; ++i)
               {
@@ -259,20 +493,122 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
 
   }
 
-  else//function call with no return type
+  else
   {
+          //of form a.add() or a.add(2,3)
+          if(tr->children[1]->symbol==MethodCall)
+          {
+              struct fun_symbol* tempfunc=lookup_fun(tr->children[1]->children[0]->value.string);
+              if(tempfunc==NULL)
+              {
+                fprintf(stderr, "Function: %s should be declared before use.\n",tr->children[1]->children[0]->value.string);
+                exit(1);
+              }
+              if(tempfunc->param_num!=tr->children[1]->children_count-1)
+              {
+                fprintf(stderr, "Function: %s mismatch parameter count.\n",tr->children[1]->children[0]->value.string);
+                exit(1);
+              }
 
-          struct fun_symbol* tempfunc=lookup_fun(tr->children[0]->value.string);
+            for (int i = 0; i < tempfunc->param_num; ++i)
+              {
+                  struct var_symbol* vs=lookup_var_offset(tempfunc->symbolTable,i);
+                  if(vs!=NULL)
+                  { 
+
+                    struct var_symbol* vs2 = lookup_var (tr->children[1]->children[i+1]->value.string);
+                    if(vs2==NULL)
+                    {
+                        if( get_type(tr->children[1]->children[i+1]->symbol) != vs->type)
+                        {
+                          fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",tr->children[1]->children[0]->value.string,i+1);
+                           exit(1);
+                        }
+                    }
+                    else
+                    {
+                        if( vs2->type != vs->type)
+                        {
+                          fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",tr->children[1]->children[0]->value.string,i+1);
+                           exit(1);
+                        }
+                    }
+                  }
+              }
+
+
+
+
+          }
+
+
+          //of form add(2,3)
+          else
+          {
+              struct fun_symbol* tempfunc=lookup_fun(tr->children[0]->value.string);
+              if(tempfunc==NULL)
+              {
+                fprintf(stderr, "Function: %s should be declared before use.\n",tr->children[0]->value.string);
+                exit(1);
+              }
+
+              if(tempfunc->param_num!=tr->children_count-1)
+              {
+                fprintf(stderr, "Function: %s mismatch parameter count.\n",tr->children[0]->value.string);
+                exit(1);
+              }
+
+              for (int i = 0; i < tempfunc->param_num; ++i)
+              {
+                  struct var_symbol* vs=lookup_var_offset(tempfunc->symbolTable,i);
+                  if(vs!=NULL)
+                  { 
+
+                    struct var_symbol* vs2 = lookup_var (tr->children[i+1]->value.string);
+                    if(vs2==NULL)
+                    {
+                        if( get_type(tr->children[i+1]->symbol) != vs->type)
+                        {
+                          fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",tr->children[0]->value.string,i+1);
+                           exit(1);
+                        }
+                    }
+                    else
+                    {
+                        if( vs2->type != vs->type)
+                        {
+                          fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",tr->children[0]->value.string,i+1);
+                           exit(1);
+                        }
+                    }
+                  }
+              }
+
+            
+
+
+          }
+
+
+          
+
+          /*
           if(tempfunc!=NULL)
           {
               //call function
               for (int i = 1; i < tr->children_count; ++i)
                   {
                       struct var_symbol* vs1=lookup_var_offset(tempfunc->symbolTable,i-1);
+                      if(vs1==NULL)
+                      {
+                        fprintf(stderr, "Variable: should be declared before use.\n");
+                        exit(1);
+                      }
                       *(vs1->value)=tr->children[i]->value;
                   }
 
           }
+          */
   }
 
 }
@@ -285,6 +621,11 @@ void multi_assign_stmt(struct tree_node* tr, int scope) {
           for (int i = 0; i < temp->children_count; ++i)
           {
               struct var_symbol* vs=lookup_var (temp->children[i]->value.string);
+              if(vs==NULL)
+              {
+                fprintf(stderr, "Variable: %s should be declared before use.\n", temp->children[i]->value.string);
+                exit(1);
+              }
               //TODO: Check if already declared
               if(vs!=NULL)
               *(vs->value)=tr->children[i+1]->value;
@@ -311,6 +652,11 @@ void print_stmt(struct tree_node* tr, int scope) {
   else if (symbol == ID) {
     //todo - check variable exists
     struct var_symbol* vs = lookup_var (tr->children[1]->value.string);
+    if(vs==NULL)
+    {
+      fprintf(stderr, "Variable: %s should be declared before use.\n", tr->children[1]->value.string);
+      exit(1);
+    }
     if (vs->type == T_STR) {
       codeseg_add("printstr %s_%d", tr->children[1]->value.string, vs->scope);
     }
@@ -341,8 +687,10 @@ void scan_stmt(struct tree_node* tr, int scope) {
       }
 
     }else {
-      // todo: variable does not exist
+      fprintf(stderr, "Variable: %s should be declared before use.\n", tr->children[1]->value.string);
+      exit(1);
     }
+
   }else {
     // todo: scan only ID
   }
@@ -352,7 +700,12 @@ void loop_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, cha
   int whilenum = while_count;
   while_count++;
   codeseg_add("while_begin%d:", whilenum);
-  eval_expn(tr->children[1], scope);
+  int type=eval_expn(tr->children[1], scope);
+  if(type!=T_BOOL)
+  {
+    fprintf(stderr, "Boolean Expression for loop condition.\n");
+    exit(1);
+  }
   codeseg_add("cmp eax, 1");
   codeseg_add("jnz while_end%d", whilenum);
 
@@ -380,7 +733,14 @@ void func_defn_stmt(struct tree_node* tr, int scope, FILE* fp) {
   struct symbol_table* temp_table = new_symtable(++current_scope);
   struct tree_node* temp;
   int type;
-  insert_fun(tr->children[1]->value.string, temp_table, (tr->children[2]->children_count)/2 , T_FUN);
+
+if(tr->children[3]->symbol==Statements)
+  type = -1;
+
+else
+  type=get_type(tr->children[3]->symbol);
+
+  insert_fun(tr->children[1]->value.string, temp_table, (tr->children[2]->children_count)/2 , type);
 
   push_table(temp_table);
 
@@ -404,7 +764,13 @@ void func_defn_stmt(struct tree_node* tr, int scope, FILE* fp) {
 void ifelse_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char* func_name, FILE* fp) {
   static int if_count = 0;
   // codegen for boolean expn
-  eval_expn(tr->children[0], scope);
+  int type=eval_expn(tr->children[0], scope);
+  if(type!=T_BOOL)
+  {
+    fprintf(stderr, "Boolean Expression for if condition.\n");
+    exit(1);
+  }
+
   codeseg_add("cmp eax, 1");
   int labelnum = if_count;
   if_count++;
@@ -459,36 +825,42 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
 
     // single and multiple declaration statements
     if(tr->symbol == DeclarationStmt) {
+      
       declaration_stmt(tr, scope);
       return;
     }
 
     // single assignment statement
     if(tr->symbol == Stmt) {
+      
       single_assign_stmt(tr, scope);
       return;
     }
 
     // multiple assignment statemnt
     if(tr->symbol == ASSIGNOP) {
+      
       multi_assign_stmt(tr, scope);
       return;
     }
 
     // loop stmt
     if(tr->symbol == LoopStmt) {
+      
       loop_stmt(tr, scope, tables, func_name, fp);
       return;
     }
 
     // funcn defn stmt
     if(tr->symbol == FunctionDef) {
+      
       func_defn_stmt(tr, scope, fp);
       return;
     }
 
     // if stmt
     if(tr->symbol == IfStmt) {
+      
         ifelse_stmt(tr, scope, tables, func_name, fp);
         return;
     }
@@ -496,21 +868,25 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
     // else stmt
     // need only 1 more new scope
     if(tr->symbol == ElseStmt){
+      
       ifelse_stmt(tr, scope, tables, func_name, fp);
       return;
     }
 
     // print statements
     if(tr->symbol == OStmt) {
+      
       print_stmt(tr, scope);
       return;
     }
 
     // print statements
     if(tr->symbol == IStmt) {
+      
       scan_stmt(tr, scope);
       return;
     }
+
 
     // no match
     for (int i = 0; i < tr->children_count; i++) {
