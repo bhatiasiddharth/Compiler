@@ -5,7 +5,7 @@
 typedef enum{GLOBAL, LOCAL, PARAM} Scope;
 extern char *strdup(const char *s);
 
-enum var_type {T_STR, T_INT, T_CHAR, T_FLOAT, T_BOOL, T_FUN, T_ARRAY, T_GRID};
+enum var_type {T_STR, T_INT, T_CHAR, T_FLOAT, T_BOOL, T_FUN};
  /* SIZE is the size of the hash table */
 #define SIZE 211
 /* SHIFT is the power of two used as multiplier in hash function  */

@@ -330,270 +330,275 @@ void declaration_stmt(struct tree_node* tr, int scope) {
   }
 }
 
+void assign_helper(struct tree_node* lnode, struct tree_node* rnode, int scope) {
+  struct tree_node* returnvar;
+  if (lnode->symbol == ID)
+  {
+        if(rnode->symbol != array) //not array assignment
+        {
+            // single assignment
+            struct var_symbol* vs = lookup_var(lnode->value.string);
+            if(vs==NULL)
+            {
+                fprintf(stderr, "Variable: %s should be declared before use.\n", lnode->value.string);
+                exit(1);
+            }
+
+            if(!vs->mutable)
+            {
+                 fprintf(stderr, "Variable: %s must be mutable.\n",lnode->value.string);
+                exit(1); 
+            }
+
+            if(vs->size>1)
+            {
+                fprintf(stderr, "Variable: %s should be assigned to an array.\n", lnode->value.string);
+                exit(1);
+            }
+              
+              // code generate for single assignment
+            if(is_arithop(rnode->symbol))
+            {
+
+                int type=eval_expn(rnode, scope);
+                if(vs->type!=type)
+                {
+                    fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
+                        exit(1);
+                }
+            }
+
+            else if(rnode->symbol == ID)
+            {
+                struct var_symbol* vs2 = lookup_var(rnode->value.string);
+                if(vs2==NULL)
+                {
+                  struct fun_symbol* tempfun=lookup_fun(rnode->value.string);
+                  if(tempfun==NULL)
+                  {
+                    //of form x= add(); or x=y;
+                     fprintf(stderr, "Variable: %s should be declared before use.\n", rnode->value.string);
+                      exit(1);
+                  }
+
+                }
+
+                if(vs2!=NULL)
+                {
+                    if(vs2->type!=vs->type)
+                    {
+                        fprintf(stderr, "Type of %s does not match type of %s.\n", vs->name, vs2->name);
+                        exit(1);
+                    }
+                }
+
+                if(vs->type == T_INT || vs->type == T_BOOL) {
+                  codeseg_add("push dword ptr %s_%d", vs2->name, vs2->scope);
+                }else if(vs->type == T_STR) {
+                  codeseg_add("lea si, %s_%d", vs2->name, vs2->scope);
+                }
+            }
+
+            else if(rnode->symbol == FLOAT || rnode->symbol == CHARL || rnode->symbol == STRL || rnode->symbol == TRUE || rnode->symbol == FALSE || rnode->symbol == BOOL || rnode->symbol == NUM)
+            {
+                char identifier[MAX_LEN];
+                int type = get_type(rnode->symbol);
+                if(vs->type != type)
+                {
+                    fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
+                    exit(1);
+                }
+                // add temp node
+                if(rnode->symbol == NUM) {
+                  codeseg_add("push dword ptr %d", rnode->value.inum);
+                }else if(rnode->symbol == TRUE || rnode->symbol == FALSE) {
+                  codeseg_add("push dword ptr %s_%d", rnode->value.bool);
+                }else if(rnode->symbol == STRL) {
+                  tempentry_add(identifier, &(rnode->value), type, 1);
+                  codeseg_add("lea si, %s", identifier);
+                }
+            }
+              
+              // function call case
+            else if(rnode->symbol==relType)
+            {
+                *(vs->value) = rnode->value;
+
+                struct fun_symbol* tempfun=lookup_fun(rnode->children[0]->value.string);
+                if(rnode->children[1]->symbol==MethodCall) //of form x= a.add(); or x= a.add(2,4);
+                {
+                  struct fun_symbol* tempfun=lookup_fun(rnode->children[1]->children[0]->value.string);
+                  if(tempfun==NULL)
+                  {
+                      fprintf(stderr, "Function: %s should be declared before use.\n",rnode->children[1]->children[0]->value.string);
+                      exit(1);
+                  }
+
+                  if(tempfun->param_num!=rnode->children[1]->children_count-1)
+                  {
+                    fprintf(stderr, "Function: %s mismatch parameter count.\n",rnode->children[1]->children[0]->value.string);
+                    exit(1);
+                  }
+
+
+                  for (int i = 0; i < tempfun->param_num; ++i)
+                  {
+                      struct var_symbol* vs=lookup_var_offset(tempfun->symbolTable,i);
+                      if(vs!=NULL)
+                      {
+
+                        struct var_symbol* vs2 = lookup_var (rnode->children[1]->children[i+1]->value.string);
+                        if(vs2==NULL)
+                        {
+                            if( get_type(rnode->children[1]->children[i+1]->symbol) != vs->type)
+                            {
+                              fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",rnode->children[1]->children[0]->value.string,i+1);
+                               exit(1);
+                            }
+                        }
+                        else
+                        {
+                            if( vs2->type != vs->type)
+                            {
+                              fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",rnode->children[1]->children[0]->value.string,i+1);
+                               exit(1);
+                            }
+                        }
+                      }
+                  }
+
+                   struct var_symbol* vs3 = lookup_var(returnvar->value.string);
+                  if(vs3->type != tempfun->type)
+                  {
+                    fprintf(stderr, "Function: %s return type mismatch.\n",rnode->children[1]->children[0]->value.string);
+                      exit(1);
+                  }
+                }
+
+                else if(rnode->children[1]->symbol == OSQUARE) //min = arr[0]
+                {
+                      // get array identifier
+                      struct var_symbol* vs2 = lookup_var(rnode->children[0]->value.string);
+                      if(vs2 != NULL){
+                        // only for numbers right now
+                        if(vs2->type == T_INT || vs2->type == T_BOOL) {
+                          codeseg_add("lea si,  %s_%d ; get array index", vs2->name, vs2->scope);
+                          codeseg_add("add si,  %d", 4*rnode->children[2]->value.inum);
+                          codeseg_add("push dword ptr [si]", vs2->name, vs2->scope);
+                        }if(vs2->type == T_STR) {
+                          codeseg_add("lea si,  %s_%d ; get array index", vs2->name, vs2->scope);
+                          codeseg_add("add si,  %d", 80*rnode->children[2]->value.inum);
+                        }
+                      }
+                }
+
+                else   //of form x= add(3,4);
+                {
+                  struct fun_symbol* tempfun=lookup_fun(rnode->children[0]->value.string);
+                  if(tempfun==NULL)
+                  {
+                      fprintf(stderr, "Function: %s should be declared before use.\n",rnode->children[0]->value.string);
+                      exit(1);
+                  }
+                  if(tempfun->param_num!=rnode->children_count-1)
+                  {
+                    fprintf(stderr, "Function: %s mismatch parameter count.\n",rnode->children[0]->value.string);
+                    exit(1);
+                  }
+
+
+
+                  for (int i = 0; i < tempfun->param_num; ++i)
+                  {
+                      struct var_symbol* vs=lookup_var_offset(tempfun->symbolTable,i);
+                      if(vs!=NULL)
+                      {
+
+                        struct var_symbol* vs2 = lookup_var (rnode->children[i+1]->value.string);
+                        if(vs2==NULL)
+                        {
+                            if( get_type(rnode->children[i+1]->symbol) != vs->type)
+                            {
+                              fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",rnode->children[0]->value.string,i+1);
+                               exit(1);
+                            }
+                        }
+                        else
+                        {
+                            if( vs2->type != vs->type)
+                            {
+                              fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",rnode->children[0]->value.string,i+1);
+                               exit(1);
+                            }
+                        }
+                      }
+                  }
+
+                   struct var_symbol* vs3 = lookup_var (returnvar->value.string);
+                  if(vs3->type != tempfun->type)
+                  {
+                    fprintf(stderr, "Function: %s return type mismatch.\n",rnode->children[0]->value.string);
+                      exit(1);
+                  }
+                }
+            }
+
+            if(lnode->symbol == ID)
+            {
+                if(vs->type == T_INT || vs->type == T_BOOL)
+                {
+                  codeseg_add("pop eax");
+                  codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
+                }else if(vs->type == T_STR)
+                {
+                  codeseg_add("strcpy %s_%d, [si]", vs->name, vs->scope);
+                }
+            } 
+        }
+
+        else //array assignment x=[1,2,3] 
+        {
+
+
+          struct var_symbol* vs2 = lookup_var(lnode->value.string);
+
+          if(!vs2->mutable)
+          {
+               fprintf(stderr, "Variable: %s must be mutable.\n",lnode->value.string);
+              exit(1); 
+          }
+
+          if(vs2->size==1)
+          {
+              fprintf(stderr, "Variable: %s cannot be assigned to array.\n", lnode->value.string);
+              exit(1);
+          }
+
+          lnode = rnode;
+          int size = lnode->children_count;
+
+          struct var_symbol* vs=lookup_var (lnode->value.string);
+          if(vs==NULL)
+          {
+            fprintf(stderr, "Variable: %s should be declared before use.\n", lnode->value.string);
+            exit(1);
+          }
+          if(vs!=NULL)
+          for (int i = 1; i < size; ++i)
+          {
+
+              vs->value[i-1] = lnode->children[i]->value;
+
+          }
+
+        }
+  }
+}
 void single_assign_stmt(struct tree_node* tr, int scope) {
   struct tree_node* temp;
   if(tr->children[1]->symbol == ASSIGNOP)
   {
-      struct tree_node* assignop = tr->children[1];
-      struct tree_node* returnvar = tr->children[0];
-      temp = tr->children[0];
-      if (temp->symbol == ID)
-      {
-           
-
-            if(assignop->children[0]->symbol != array) //not array assignment
-            {
-
-                // single assignment
-                struct var_symbol* vs = lookup_var(temp->value.string);
-                if(vs==NULL)
-                {
-                    fprintf(stderr, "Variable: %s should be declared before use.\n", temp->value.string);
-                    exit(1);
-                }
-
-                if(!vs->mutable)
-                {
-                     fprintf(stderr, "Variable: %s must be mutable.\n",temp->value.string);
-                    exit(1); 
-                }
-
-                if(vs->size>1)
-                {
-                    fprintf(stderr, "Variable: %s should be assigned to an array.\n", temp->value.string);
-                    exit(1);
-                }
-                  
-                  // code generate for single assignment
-                if(is_arithop(assignop->children[1]->symbol))
-                {
-
-                    int type=eval_expn(assignop->children[1], scope);
-                    if(vs->type!=type)
-                    {
-                        fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
-                            exit(1);
-                    }
-                    codeseg_add("push eax");
-                }
-
-                else if(assignop->children[1]->symbol == ID)
-                {
-                    struct var_symbol* vs2 = lookup_var(assignop->children[1]->value.string);
-                    if(vs2==NULL)
-                    {
-                      struct fun_symbol* tempfun=lookup_fun(assignop->children[1]->value.string);
-                      if(tempfun==NULL)
-                      {
-                        //of form x= add(); or x=y;
-                         fprintf(stderr, "Variable: %s should be declared before use.\n", assignop->children[1]->value.string);
-                          exit(1);
-                      }
-
-                    }
-
-                    if(vs2!=NULL)
-                    {
-                        if(vs2->type!=vs->type)
-                        {
-                            fprintf(stderr, "Type of %s does not match type of %s.\n", vs->name, vs2->name);
-                            exit(1);
-                        }
-                    }
-
-                    if(vs->type == T_INT || vs->type == T_BOOL) {
-                      codeseg_add("push dword ptr %s_%d", vs2->name, vs2->scope);
-                    }else if(vs->type == T_STR) {
-                      codeseg_add("strcpy %s_%d, %s_%d", vs->name, vs->scope, vs2->name, vs2->scope);
-                    }
-                }
-
-                else if(assignop->children[1]->symbol == NUM)
-                {
-                    if(vs->type!=get_type(assignop->children[1]->symbol))
-                    {
-                        fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
-                        exit(1);
-                    }
-                    codeseg_add("push dword ptr %d", assignop->children[1]->value.inum);
-                }
-
-                else if(assignop->children[1]->symbol == FLOAT || assignop->children[1]->symbol == CHARL || assignop->children[1]->symbol == STRL || assignop->children[1]->symbol == TRUE || assignop->children[1]->symbol == FALSE || assignop->children[1]->symbol == BOOL)
-                {
-                    if(vs->type!=get_type(assignop->children[1]->symbol))
-                    {
-                        fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
-                        exit(1);
-                    }
-                }
-                  
-                  // function call case
-                else if(assignop->children[0]->symbol==relType)
-                {
-                    *(vs->value) = assignop->children[0]->value;
-
-                    struct fun_symbol* tempfun=lookup_fun(assignop->children[0]->children[0]->value.string);
-                    if(assignop->children[0]->children[1]->symbol==MethodCall) //of form x= a.add(); or x= a.add(2,4);
-                    {
-                      struct fun_symbol* tempfun=lookup_fun(assignop->children[0]->children[1]->children[0]->value.string);
-                      if(tempfun==NULL)
-                      {
-                          fprintf(stderr, "Function: %s should be declared before use.\n",assignop->children[0]->children[1]->children[0]->value.string);
-                          exit(1);
-                      }
-
-                      if(tempfun->param_num!=assignop->children[0]->children[1]->children_count-1)
-                      {
-                        fprintf(stderr, "Function: %s mismatch parameter count.\n",assignop->children[0]->children[1]->children[0]->value.string);
-                        exit(1);
-                      }
-
-
-                      for (int i = 0; i < tempfun->param_num; ++i)
-                      {
-                          struct var_symbol* vs=lookup_var_offset(tempfun->symbolTable,i);
-                          if(vs!=NULL)
-                          {
-
-                            struct var_symbol* vs2 = lookup_var (assignop->children[0]->children[1]->children[i+1]->value.string);
-                            if(vs2==NULL)
-                            {
-                                if( get_type(assignop->children[0]->children[1]->children[i+1]->symbol) != vs->type)
-                                {
-                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",assignop->children[0]->children[1]->children[0]->value.string,i+1);
-                                   exit(1);
-                                }
-                            }
-                            else
-                            {
-                                if( vs2->type != vs->type)
-                                {
-                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",assignop->children[0]->children[1]->children[0]->value.string,i+1);
-                                   exit(1);
-                                }
-                            }
-                          }
-                      }
-
-                       struct var_symbol* vs3 = lookup_var (returnvar->value.string);
-                      if(vs3->type != tempfun->type)
-                      {
-                        fprintf(stderr, "Function: %s return type mismatch.\n",assignop->children[0]->children[1]->children[0]->value.string);
-                          exit(1);
-                      }
-                    }
-
-                    else if(assignop->children[0]->children[1]->symbol == OSQUARE) //min = arr[0]
-                    {
-                          // get array identifier
-                          struct var_symbol* vs2 = lookup_var(assignop->children[1]->children[0]->value.string);
-                          if(vs2 != NULL){
-                            // only for numbers right now
-                            codeseg_add("lea si,  %s_%d ; get array index", vs2->name, vs2->scope);
-                            codeseg_add("add si,  %d", 4*assignop->children[1]->children[2]->value.inum);
-                            codeseg_add("push dword ptr [si]", vs2->name, vs2->scope);
-                          }
-                    }
-
-                    else   //of form x= add(3,4);
-                    {
-                      struct fun_symbol* tempfun=lookup_fun(assignop->children[0]->children[0]->value.string);
-                      if(tempfun==NULL)
-                      {
-                          fprintf(stderr, "Function: %s should be declared before use.\n",assignop->children[0]->children[0]->value.string);
-                          exit(1);
-                      }
-                      if(tempfun->param_num!=assignop->children[0]->children_count-1)
-                      {
-                        fprintf(stderr, "Function: %s mismatch parameter count.\n",assignop->children[0]->children[0]->value.string);
-                        exit(1);
-                      }
-
-
-
-                      for (int i = 0; i < tempfun->param_num; ++i)
-                      {
-                          struct var_symbol* vs=lookup_var_offset(tempfun->symbolTable,i);
-                          if(vs!=NULL)
-                          {
-
-                            struct var_symbol* vs2 = lookup_var (assignop->children[0]->children[i+1]->value.string);
-                            if(vs2==NULL)
-                            {
-                                if( get_type(assignop->children[0]->children[i+1]->symbol) != vs->type)
-                                {
-                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",assignop->children[0]->children[0]->value.string,i+1);
-                                   exit(1);
-                                }
-                            }
-                            else
-                            {
-                                if( vs2->type != vs->type)
-                                {
-                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",assignop->children[0]->children[0]->value.string,i+1);
-                                   exit(1);
-                                }
-                            }
-                          }
-                      }
-
-                       struct var_symbol* vs3 = lookup_var (returnvar->value.string);
-                      if(vs3->type != tempfun->type)
-                      {
-                        fprintf(stderr, "Function: %s return type mismatch.\n",assignop->children[0]->children[0]->value.string);
-                          exit(1);
-                      }
-                    }
-                }
-
-                if(temp->symbol == ID)
-                {
-                    if(vs->type == T_INT)
-                    {
-                      codeseg_add("pop eax");
-                      codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
-                    }
-                } 
-            }
-
-            else //array assignment x=[1,2,3] 
-            {
-
-
-                struct var_symbol* vs2 = lookup_var(temp->value.string);
-
-                if(!vs2->mutable)
-                {
-                     fprintf(stderr, "Variable: %s must be mutable.\n",temp->value.string);
-                    exit(1); 
-                }
-
-                if(vs2->size==1)
-                {
-                    fprintf(stderr, "Variable: %s cannot be assigned to array.\n", temp->value.string);
-                    exit(1);
-                }
-
-              temp = assignop->children[0];
-              int size = temp->children_count;
-
-              struct var_symbol* vs=lookup_var (tr->children[0]->value.string);
-              if(vs==NULL)
-              {
-                fprintf(stderr, "Variable: %s should be declared before use.\n", tr->children[0]->value.string);
-                exit(1);
-              }
-              if(vs!=NULL)
-              for (int i = 1; i < size; ++i)
-              {
-
-                  vs->value[i-1] = temp->children[i]->value;
-
-              }
-
-            }
-      }
-
+    assign_helper(tr->children[0], tr->children[1]->children[0], scope);
   }
 
 
@@ -705,15 +710,7 @@ void multi_assign_stmt(struct tree_node* tr, int scope) {
       {
           for (int i = 0; i < temp->children_count; ++i)
           {
-              struct var_symbol* vs=lookup_var (temp->children[i]->value.string);
-              if(vs==NULL)
-              {
-                fprintf(stderr, "Variable: %s should be declared before use.\n", temp->children[i]->value.string);
-                exit(1);
-              }
-              //TODO: Check if already declared
-              if(vs!=NULL)
-              *(vs->value)=tr->children[i+1]->value;
+              assign_helper(temp->children[i], tr->children[i+1], scope);
           }
       }
 }
@@ -860,11 +857,10 @@ void func_defn_stmt(struct tree_node* tr, int scope, FILE* fp) {
   struct tree_node* temp;
   int type;
 
-if(tr->children[3]->symbol==Statements)
-  type = -1;
-
-else
-  type=get_type(tr->children[3]->symbol);
+  if(tr->children[3]->symbol==Statements)
+    type = -1;
+  else
+    type=get_type(tr->children[3]->symbol);
 
   insert_fun(tr->children[1]->value.string, temp_table, (tr->children[2]->children_count)/2 , type);
 
@@ -927,26 +923,6 @@ void ifelse_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, c
   codeseg_add("if_end%d:", labelnum);
 }
 
-void else_stmt(struct tree_node* tr, int scope, struct symbol_table* tables, char* func_name, FILE* fp) {
-  st_fill(tr->children[0],scope,tables,func_name,fp);
-  st_fill(tr->children[1],scope,tables,func_name,fp);
-
-  struct symbol_table* temp_table = new_symtable(++current_scope);
-  push_table(temp_table);
-  st_fill(tr->children[2],current_scope,temp_table,func_name,fp);
-  struct symbol_table* copy_table=temp_table;
-  fprintf(fp, "Elseif of %s()\n",func_name);
-  print_symtab(copy_table, fp,1);
-  copy_table=copy_table->next;
-  while(copy_table!=NULL)
-  {
-    print_symtab(copy_table, fp,0);
-    copy_table=copy_table->next;
-  }
-  fprintf(fp, "\n\n");
-  pop_table(temp_table);
-
-}
 void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* func_name,FILE* fp) {
 
     // single and multiple declaration statements
@@ -984,17 +960,8 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
       return;
     }
 
-    // if stmt
-    if(tr->symbol == IfStmt) {
-
-        ifelse_stmt(tr, scope, tables, func_name, fp);
-        return;
-    }
-
-    // else stmt
-    // need only 1 more new scope
-    if(tr->symbol == ElseStmt){
-
+    // ifelse stmt
+    if(tr->symbol == IfStmt || tr->symbol == ElseStmt){
       ifelse_stmt(tr, scope, tables, func_name, fp);
       return;
     }
@@ -1006,7 +973,7 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
       return;
     }
 
-    // print statements
+    // input statements
     if(tr->symbol == IStmt) {
 
       scan_stmt(tr, scope);

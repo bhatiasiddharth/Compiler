@@ -1,0 +1,18 @@
+
+
+main() {
+	let mut arr = [1, 1, 2, 5];
+	let names = ["thrones", "of", "game", "hodor", "lannister"];
+	let mut x = "7";
+	let mut y = "17";
+	let mut i = 5;
+	let o = true;
+	x = arr[0];
+	x = "200";
+	x = names[4];
+	let mut z = 4;
+	let mut b = 5;
+	(x, y, z, b) = (names[3], names[4], 5+6*10, 15);
+	print(x);
+	print(b);
+}

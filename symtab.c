@@ -212,17 +212,11 @@ void print_var(struct var_symbol* vs, FILE* fp) {
         switch(vs->type) {
         case T_STR : fprintf(fp, "%s ", vs->value[i].string);
                 break;
-        // T_ARRAY fprintf(fp, "%s ", vs->value[i]->inum);
-        //         break;
         case T_INT : fprintf(fp, "%d ", vs->value[i].inum);
                 break;
         case T_CHAR:fprintf(fp, "%c ", vs->value[i].ch);
                 break;
         case T_FUN : // fprintf(fp, "%s ", vs->value[i]->inum);
-                break;
-        case T_GRID ://fprintf(fp, "%s ", vs->value[i]->inum);
-                break;
-        case T_ARRAY ://fprintf(fp, "%s ", vs->value[i]->inum);
                 break;
         case T_FLOAT: fprintf(fp, "%f ", vs->value[i].fnum);
                 break;

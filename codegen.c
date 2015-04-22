@@ -53,12 +53,21 @@ void dataseg_add(char *identifier, int scope, int type, union value* value, int 
 	strcat(dataseg, entry);
 }
 
+void tempentry_add(char *identifier, union value* value, int type, int size) {
+	static int count = 0;
+	count++;
+	sprintf(identifier, "%s%d", TMPPREFIX, count);
+	dataseg_add(identifier, 0, type, value, size);
+	// dataseg_add appends scope - taking scope = 0
+	strcat(identifier, "_0");
+}
+
 void codeseg_add(char *fmt, ...) {
 	va_list va;
-  va_start(va, fmt);
-  vsprintf(codeseg + strlen(codeseg), fmt, va);
+	va_start(va, fmt);
+	vsprintf(codeseg + strlen(codeseg), fmt, va);
 	strcat(codeseg, "\n");
-  va_end(va);
+	va_end(va);
 }
 
 // init register, all available

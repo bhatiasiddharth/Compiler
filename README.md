@@ -44,5 +44,10 @@ TODO
 - limit number values
 - limit identifier and string length
 - Codegen what all did you do
-- multiple assignment codegen and typechecking (done implicitly by single assignment)
+- ~~multiple assignment codegen and typechecking (done implicitly by single assignment)~~
 - .size()
+
+Errors
+======
+- Duplicate declarations of variable: .
+- arr = [1, 2, 3];

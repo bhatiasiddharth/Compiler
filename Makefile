@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -g -std=c99
 DEPS = parser.o lexer.o stack.o tree.o ast.o symtab.o analyzer.o codegen.o compiler.o
 
-SAMPLE = samples/03-sum
+SAMPLE = samples/07-assignment
 .PHONY = debug
 chrome:	run create-tree
 	@open -a "Google Chrome" $(SAMPLE)-syntax.svg
