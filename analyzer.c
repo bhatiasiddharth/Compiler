@@ -79,9 +79,11 @@ int eval_expn(struct tree_node* tr, int scope) {
       codeseg_add("push dword ptr %d", tr->value.inum);
       return T_INT;
     }else if(tr->symbol == FLOAT) {
+      // ignore
       return T_FLOAT;
     }
     else if(tr->symbol == BOOL || tr->symbol == TRUE || tr->symbol == FALSE) {
+      codeseg_add("push dword ptr %d", tr->value.bool);
       return T_BOOL;
     }
 
@@ -149,6 +151,13 @@ int eval_expn(struct tree_node* tr, int scope) {
     return T_BOOL;
 }
 
+/*
+  let x =5
+  let x = [1,2, 3, 4];
+  let x = "foo";
+
+*/
+
 void declaration_stmt(struct tree_node* tr, int scope) {
   struct tree_node *assignop, *temp;
   enum var_type type;
@@ -165,19 +174,45 @@ void declaration_stmt(struct tree_node* tr, int scope) {
       if(assignop->children[1]->symbol != array){
           // single declaration
           union value* value = (union value*) malloc(sizeof(union value));
-          *value= assignop->children[1]->value;
           // codegen
           type = get_type(assignop->children[1]->symbol);
 
+
           if(is_arithop(assignop->children[1]->symbol)) {
             // print_symbol(stdout, assignop->children[1]->symbol, *value);
-            type=eval_expn(assignop->children[1], scope);
+            type = eval_expn(assignop->children[1], scope);
+            value->inum = 0;
+            // for T_INT
             codeseg_add("pop eax");
             codeseg_add("mov %s_%d, eax", temp->value.string, scope);
-            //type = T_INT;
+          }else if(assignop->children[1]->symbol == NUM) {
+            value->inum = assignop->children[1]->value.inum;
+           // data segment initialized
+          }else if(assignop->children[1]->symbol == STRL) {
+            strcpy(value->string, assignop->children[1]->value.string);
+           // data segment initialized
+          }else if(assignop->children[1]->symbol == TRUE || assignop->children[1]->symbol == FALSE) {
+            value->bool = assignop->children[1]->value.bool;
+           // data segment initialized
+          }else if(assignop->children[1]->symbol == ID) {
+            struct var_symbol* vs = lookup_var(assignop->children[1]->value.string);
+            type = vs->type;
+            if (vs->type == T_INT) {
+              value->inum = 0;
+              codeseg_add("mov eax, %s_%d", vs->name, vs->scope);
+              codeseg_add("mov %s_%d, eax", temp->value.string, scope);
+            }if (vs->type == T_BOOL) {
+              value->bool = 0;
+              codeseg_add("mov eax, %s_%d", vs->name, vs->scope);
+              codeseg_add("mov %s_%d, eax", temp->value.string, scope);
+            }else if(vs->type == T_STR) {
+              strcpy(value->string, "$");
+              codeseg_add("strcpy %s_%d, %s_%d", temp->value.string, scope, vs->name, vs->scope);
+            }
           }
 
           dataseg_add(temp->value.string, scope, type, value, 1);
+
           insert_var(temp->value.string, scope, tables->size++, type,value,1);
       }
       else {
@@ -267,8 +302,11 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
                     }
                 }
 
-                // todo: mov for string; check for types on both lhs and rhs
-                codeseg_add("push dword ptr %s_%d", vs2->name, vs2->scope);
+                if(vs->type == T_INT || vs->type == T_BOOL) {
+                  codeseg_add("push dword ptr %s_%d", vs2->name, vs2->scope);
+                }else if(vs->type == T_STR) {
+                  codeseg_add("strcpy %s_%d, %s_%d", vs->name, vs->scope, vs2->name, vs2->scope);
+                }
               }
 
               else if(assignop->children[1]->symbol == NUM)
@@ -612,16 +650,57 @@ void print_stmt(struct tree_node* tr, int scope) {
       exit(1);
     }
     if (vs->type == T_STR) {
-      codeseg_add("printstr %s_%d", tr->children[1]->value.string, vs->scope);
+      codeseg_add("printstr %s_%d", vs->name, vs->scope);
     }
     else if (vs->type == T_INT) {
-      codeseg_add("printnum %s_%d", tr->children[1]->value.string, vs->scope);
+      codeseg_add("printnum %s_%d", vs->name, vs->scope);
     }
     else if (vs->type == T_FLOAT) {}
     else if (vs->type == T_BOOL) {
-      codeseg_add("printbool %s_%d", tr->children[1]->value.string, vs->scope);
+      codeseg_add("printbool %s_%d", vs->name, vs->scope);
     }
   }
+  // print array index
+  else if (symbol == relType && tr->children[1]->children[1]->symbol == OSQUARE) {
+      struct var_symbol* vs = lookup_var (tr->children[1]->children[0]->value.string);
+      if(vs==NULL)
+    {
+      fprintf(stderr, "Variable: %s should be declared before use.\n", tr->children[1]->children[0]->value.string);
+      exit(1);
+    }
+      struct tree_node* index = tr->children[1]->children[2];
+      int offset;
+      codeseg_add("lea si, %s_%d", vs->name, vs->scope);
+      if(index->symbol == NUM) {
+        codeseg_add("mov eax, %d", index->value.inum);
+      }else if(index->symbol == ID) {
+          struct var_symbol* vs2 = lookup_var (index->value.string);
+          if(vs2->type != T_INT) {
+              fprintf(stderr, "Array index %s must be of type integer\n", index->value.string);
+              exit(1);
+          }
+          codeseg_add("mov eax, %s_%d", vs2->name, vs2->scope);
+      }
+      if(vs->type == T_INT || vs->type == T_BOOL) {
+          codeseg_add("mov cx, 4");
+          codeseg_add("mul cx");
+          codeseg_add("add si, ax");
+      } else if(vs->type == T_STR) {
+          codeseg_add("mov cx, 80");
+          codeseg_add("mul cx");
+          codeseg_add("add si, ax");
+      }
+      if (vs->type == T_STR) {
+        codeseg_add("printstr [si]");
+      }
+      else if (vs->type == T_INT) {
+        codeseg_add("printnum [si]");
+      }
+      else if (vs->type == T_FLOAT) {}
+      else if (vs->type == T_BOOL) {
+        codeseg_add("printbool [si]");
+      }
+    }
 }
 
 void scan_stmt(struct tree_node* tr, int scope) {

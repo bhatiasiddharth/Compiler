@@ -144,3 +144,10 @@ scannum macro numval
   _end:
   mov [di], edx
 endm scannum
+
+strcpy macro str1, str2
+  lea di, str1
+  lea si, str2
+  mov cx, 80
+  rep movsb
+endm strcpy

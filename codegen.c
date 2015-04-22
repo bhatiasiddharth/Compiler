@@ -10,25 +10,40 @@ char* getreg(int reg) {
 }
 
 void value_tostr(int type, union value* value, int size, char* strval) {
-
+	char *temp = strval;
 	for(int i = 0; i < size; i++) {
-		if(i >= 1) sprintf(strval + strlen(strval), ", ");
+		if(i >= 1) {
+			sprintf(temp, ", ");
+			temp += 2;
+		}
 		if(type == T_INT) {
-			sprintf(strval + strlen(strval), "%d", value[i].inum);
+			sprintf(temp, "%d", value[i].inum);
 		}if(type == T_FLOAT) {
-			sprintf(strval + strlen(strval), "%f", value[i].fnum);
+			sprintf(temp, "%f", value[i].fnum);
 		}else if(type == T_BOOL) {
-			sprintf(strval + strlen(strval), "%d", value[i].bool);
+			sprintf(temp, "%d", value[i].bool);
 		}else if(type == T_STR) {
-			sprintf(strval + strlen(strval), "'%s', '$'", value[i].string);
+			sprintf(temp, "'%s', %lu dup('$')", value[i].string, 80 - strlen(value[i].string));
+		}
+		temp = strval + strlen(strval);
+	}
+
+	// array fill empty entries
+	if(size > 1) {
+		size = 10 - size;
+		if(type == T_INT || type == T_BOOL || type == T_FLOAT){
+			sprintf(temp, ", %d dup(0), '#'", size);
+		}else if(type == T_STR) {
+			size = size * 80;
+			// sprintf(temp, ", %d dup('$'), '#'", size);
 		}
 	}
 }
 void dataseg_add(char *identifier, int scope, int type, union value* value, int size) {
 	char entry[MAX_LEN];
 	char storage_type[3];
-	char strval[MAX_LEN];
-	bzero(strval, MAX_LEN);
+	char strval[10*MAX_LEN + 20];
+	bzero(strval, 10*MAX_LEN + 20);
 	if(type == T_INT) {
 		strcpy(storage_type, "dd");
 	}else if (type == T_CHAR || type == T_BOOL || type == T_STR)
