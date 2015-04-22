@@ -41,7 +41,8 @@ TODO
 ======
 - Accept some special symbols in STRL like >, =, <, !
 - Accept negative numbers in lexer/parser
-~~ - Remove OSQUARE from AST ~~
-~~ - Fix Array index in AST ~~
 - limit number values
 - limit identifier and string length
+- Codegen what all did you do
+- multiple assignment codegen and typechecking (done implicitly by single assignment)
+- .size()

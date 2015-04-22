@@ -64,7 +64,7 @@ struct var_symbol* lookup_var(char * name);
 struct fun_symbol* lookup_fun(char * name);
 
 /* insert symbol entries */
-int insert_var(char * name, Scope s, int offset, enum var_type type, union value* value,int size);
+int insert_var(char * name, Scope s, int offset, enum var_type type, union value* value,int size,int mutflag);
 int insert_fun(char* name, struct symbol_table* st, int num, enum var_type type);
 
 

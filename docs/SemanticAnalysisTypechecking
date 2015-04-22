@@ -16,6 +16,7 @@ In multiple assignment when assign a variable to another variable need to see if
 Array can be assigned only to another array not a variable
 Array values of same type
 In array and grid variables must be defined
+Mutability check for variables
 
 TYPECHECKING RULES
 Whenever operator, check if type of the variables is same.

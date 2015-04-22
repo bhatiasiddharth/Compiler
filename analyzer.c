@@ -160,8 +160,10 @@ int eval_expn(struct tree_node* tr, int scope) {
 void declaration_stmt(struct tree_node* tr, int scope) {
   struct tree_node *assignop, *temp;
   enum var_type type;
+  int mutflag=0;
   if(tr->children[1]->symbol == MUT){
       // id in 3rd branch
+    mutflag=1;
       assignop = tr->children[2];
   }else {
       // id in 2nd branch
@@ -217,7 +219,7 @@ void declaration_stmt(struct tree_node* tr, int scope) {
 
           dataseg_add(temp->value.string, scope, type, value, 1);
 
-          insert_var(temp->value.string, scope, tables->size++, type,value,1);
+          insert_var(temp->value.string, scope, tables->size++, type,value,1,mutflag);
       }
       else {
           // array declaration
@@ -240,7 +242,7 @@ void declaration_stmt(struct tree_node* tr, int scope) {
                      value[i-1] = temp->children[i]->value;
                 }
                 dataseg_add(assignop->children[0]->value.string, scope, type, value, size-1);
-                insert_var(assignop->children[0]->value.string, scope, tables->size++,type, value, size); //size 1 more to indicate array or grid
+                insert_var(assignop->children[0]->value.string, scope, tables->size++,type, value, size,mutflag); //size 1 more to indicate array or grid
           }
  
           else   //grid
@@ -294,7 +296,7 @@ void declaration_stmt(struct tree_node* tr, int scope) {
 
 
                 dataseg_add(assignop->children[0]->value.string, scope, type, value, size);
-                insert_var(assignop->children[0]->value.string, scope, tables->size++, type, value, size+1);    //size 1 more to indicate array or grid
+                insert_var(assignop->children[0]->value.string, scope, tables->size++, type, value, size+1,mutflag);    //size 1 more to indicate array or grid
           }
 
       }
@@ -322,7 +324,7 @@ void declaration_stmt(struct tree_node* tr, int scope) {
               }
               
               dataseg_add(temp->children[i]->value.string, scope, type, tvalue, 1);
-              insert_var(temp->children[i]->value.string, scope, tables->size++, type, tvalue,1);
+              insert_var(temp->children[i]->value.string, scope, tables->size++, type, tvalue,1,mutflag);
           }
       }
   }
@@ -337,6 +339,8 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
       temp = tr->children[0];
       if (temp->symbol == ID)
       {
+           
+
             if(assignop->children[0]->symbol != array) //not array assignment
             {
 
@@ -346,6 +350,12 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
                 {
                     fprintf(stderr, "Variable: %s should be declared before use.\n", temp->value.string);
                     exit(1);
+                }
+
+                if(!vs->mutable)
+                {
+                     fprintf(stderr, "Variable: %s must be mutable.\n",temp->value.string);
+                    exit(1); 
                 }
 
                 if(vs->size>1)
@@ -551,6 +561,13 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
 
 
                 struct var_symbol* vs2 = lookup_var(temp->value.string);
+
+                if(!vs2->mutable)
+                {
+                     fprintf(stderr, "Variable: %s must be mutable.\n",temp->value.string);
+                    exit(1); 
+                }
+
                 if(vs2->size==1)
                 {
                     fprintf(stderr, "Variable: %s cannot be assigned to array.\n", temp->value.string);
@@ -861,7 +878,7 @@ else
       bzero(value, sizeof(union value));
       type = get_type(temp->children[2*i+1]->symbol);
       //later send value
-      insert_var(temp->children[2*i]->value.string, current_scope, temp_table->size++, type,value,1);
+      insert_var(temp->children[2*i]->value.string, current_scope, temp_table->size++, type,value,1,0);
   }
 
   for (int i = 0; i < tr->children_count; i++) {

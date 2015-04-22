@@ -130,7 +130,7 @@ struct fun_symbol* lookup_fun(char * name) {
 }
 
 /* Always insert var into the top symbol table*/
-int insert_var(char * name, Scope scope, int offset, enum var_type type, union value* value,int size) {
+int insert_var(char * name, Scope scope, int offset, enum var_type type, union value* value,int size,int mutflag) {
      struct var_symbol* l, *tmp;
      int h = hash(name);
 
@@ -159,6 +159,7 @@ int insert_var(char * name, Scope scope, int offset, enum var_type type, union v
       l->type = type;
       l->offset = offset;
       l->size=size;
+      l->mutable=mutflag;
       // copy value
       //l->value = (union value*) malloc(sizeof(union value));
       //*(l->value) = value;
