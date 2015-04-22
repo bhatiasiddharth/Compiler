@@ -1,6 +1,6 @@
 #include "lexer.h"
 
-const char* token_names[] = {"DOLLAR", "EPSILON", "RARROW", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COLON", "COMMA", "DOT", "COMMENT", "OSQUARE", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE ", "NE", "ASSIGNOP", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "TRUE", "FALSE", "RETURN", "CHAR", "I32", "F32", "BOOL", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT", "MUT"};
+const char* token_names[] = {"DOLLAR", "EPSILON", "RARROW", "CSQUARE", "OPAREN", "CPAREN", "OBRACE", "CBRACE", "SEMICOLON", "COMMA", "DOT", "COMMENT", "COLON", "OSQUARE", "ID", "NUM", "FLOAT", "STRL", "CHARL", "LE", "EQ", "GE ", "NE", "ASSIGNOP", "PLUS", "MINUS", "MUL", "DIV", "LT", "GT", "TRUE", "FALSE", "RETURN", "CHAR", "I32", "F32", "BOOL", "STRING", "MAIN", "FN", "LET", "WHILE", "BREAK", "IF", "ELSE", "ELSEIF", "SCAN", "PRINT", "AND", "OR", "NOT", "MUT"};
 int single_token_map[][2] = {
   { '[', OSQUARE },
   { ']', CSQUARE },

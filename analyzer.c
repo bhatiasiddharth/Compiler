@@ -79,7 +79,6 @@ int eval_expn(struct tree_node* tr, int scope) {
       codeseg_add("push dword ptr %d", tr->value.inum);
       return T_INT;
     }else if(tr->symbol == FLOAT) {
-      // ignore
       return T_FLOAT;
     }
     else if(tr->symbol == BOOL || tr->symbol == TRUE || tr->symbol == FALSE) {
@@ -114,7 +113,7 @@ int eval_expn(struct tree_node* tr, int scope) {
       return type1;
     }
 
-
+    
 
 
     else if(tr->symbol == AND) {
@@ -196,6 +195,11 @@ void declaration_stmt(struct tree_node* tr, int scope) {
            // data segment initialized
           }else if(assignop->children[1]->symbol == ID) {
             struct var_symbol* vs = lookup_var(assignop->children[1]->value.string);
+             if(vs==NULL)
+              {
+                fprintf(stderr, "Variable: %s should be declared before use.\n", assignop->children[1]->value.string);
+                exit(1);
+              }
             type = vs->type;
             if (vs->type == T_INT) {
               value->inum = 0;
@@ -218,14 +222,80 @@ void declaration_stmt(struct tree_node* tr, int scope) {
       else {
           // array declaration
           temp = assignop->children[1];
-          int size = temp->children_count;
-          union value* value = (union value*) malloc(sizeof(union value) * (size - 1));
-          type = get_type(temp->children[1]->symbol);
-          for (int i = 1; i < size; ++i) {
-              value[i-1] = temp->children[i]->value;
+
+          if(temp->children[temp->children_count-1]->symbol!=moreAssn) 
+          {
+                  int size = temp->children_count;
+                  union value* value = (union value*) malloc(sizeof(union value) * (size - 1));
+                  type = get_type(temp->children[1]->symbol);
+
+                for (int i = 1; i < size; ++i)
+                {
+                    if(get_type(temp->children[i]->symbol)!=type)
+                    {
+                        fprintf(stderr, "Array %s should have variables of same type.\n", assignop->children[0]->value.string);
+                        exit(1);
+                    }
+
+                     value[i-1] = temp->children[i]->value;
+                }
+                dataseg_add(assignop->children[0]->value.string, scope, type, value, size-1);
+                insert_var(assignop->children[0]->value.string, scope, tables->size++,type, value, size); //size 1 more to indicate array or grid
           }
-          dataseg_add(assignop->children[0]->value.string, scope, type, value, size-1);
-          insert_var(assignop->children[0]->value.string, scope, tables->size++, type, value, size-1);
+ 
+          else   //grid
+          {
+                  int size = temp->children_count-2 + temp->children[temp->children_count-1]->children_count-1;
+                  union value* value = (union value*) malloc(sizeof(union value) * (size));
+                  type = get_type(temp->children[1]->symbol);
+
+                  int i;
+                for (i = 1; i < temp->children_count-1; ++i)
+                {
+                    if(temp->children[i]->symbol == ID)
+                      {
+                            struct var_symbol* vs4 = lookup_var(temp->children[i]->value.string);
+                            if(vs4==NULL)
+                              {
+                                fprintf(stderr, "Variable: %s should be declared before use.\n", temp->children[i]->value.string);
+                                exit(1);
+                              }
+          
+                      }
+
+                    if(get_type(temp->children[i]->symbol)!=type)
+                    {
+                        fprintf(stderr, "Grid %s should have variables of same type.\n", assignop->children[0]->value.string);
+                        exit(1);
+                    }
+                     value[i-1] = temp->children[i]->value;
+                }
+                int j=1;
+                for (;i<=size;++i)
+                {
+                    if(temp->children[temp->children_count-1]->children[j]->symbol == ID)
+                      {
+                            struct var_symbol* vs4 = lookup_var(temp->children[temp->children_count-1]->children[j]->value.string);
+                            if(vs4==NULL)
+                              {
+                                fprintf(stderr, "Variable: %s should be declared before use.\n", temp->children[temp->children_count-1]->children[j]->value.string);
+                                exit(1);
+                              }
+          
+                      }
+
+                    if(get_type(temp->children[temp->children_count-1]->children[j]->symbol)!=type)
+                    {
+                        fprintf(stderr, "Grid %s should have variables of same type.\n", assignop->children[0]->value.string);
+                        exit(1);
+                    }
+                    value[i-1] = temp->children[temp->children_count-1]->children[j++]->value;
+                }
+
+
+                dataseg_add(assignop->children[0]->value.string, scope, type, value, size);
+                insert_var(assignop->children[0]->value.string, scope, tables->size++, type, value, size+1);    //size 1 more to indicate array or grid
+          }
 
       }
   }
@@ -239,6 +309,18 @@ void declaration_stmt(struct tree_node* tr, int scope) {
               union value* tvalue = (union value*) malloc(sizeof(union value));
               *tvalue = assignop->children[i+1]->value;
               type = get_type(assignop->children[i + 1]->symbol);
+
+              if(assignop->children[i+1]->symbol == ID)
+              {
+                    struct var_symbol* vs4 = lookup_var(assignop->children[i+1]->value.string);
+                    if(vs4==NULL)
+                      {
+                        fprintf(stderr, "Variable: %s should be declared before use.\n", assignop->children[i+1]->value.string);
+                        exit(1);
+                      }
+  
+              }
+              
               dataseg_add(temp->children[i]->value.string, scope, type, tvalue, 1);
               insert_var(temp->children[i]->value.string, scope, tables->size++, type, tvalue,1);
           }
@@ -255,82 +337,89 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
       temp = tr->children[0];
       if (temp->symbol == ID)
       {
-          if(assignop->children[0]->symbol != array) //not array assignment
-          {
-              // single assignment
-              struct var_symbol* vs = lookup_var(temp->value.string);
-              if(vs==NULL)
-              {
-                fprintf(stderr, "Variable: %s should be declared before use.\n", temp->value.string);
-                exit(1);
-              }
-              
-              // code generate for single assignment
-              if(is_arithop(assignop->children[1]->symbol))
-              {
+            if(assignop->children[0]->symbol != array) //not array assignment
+            {
 
-                int type=eval_expn(assignop->children[1], scope);
-                if(vs->type!=type)
+                // single assignment
+                struct var_symbol* vs = lookup_var(temp->value.string);
+                if(vs==NULL)
                 {
-                    fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
-                        exit(1);
-                }
-                codeseg_add("push eax");
-              }
-
-              else if(assignop->children[1]->symbol == ID)
-              {
-                struct var_symbol* vs2 = lookup_var(assignop->children[1]->value.string);
-                if(vs2==NULL)
-                {
-                  struct fun_symbol* tempfun=lookup_fun(assignop->children[1]->value.string);
-                  if(tempfun==NULL)
-                  {
-                    //of form x= add(); or x=y;
-                     fprintf(stderr, "Variable: %s should be declared before use.\n", assignop->children[1]->value.string);
-                      exit(1);
-                  }
-
+                    fprintf(stderr, "Variable: %s should be declared before use.\n", temp->value.string);
+                    exit(1);
                 }
 
-                if(vs2!=NULL)
+                if(vs->size>1)
                 {
-                    if(vs2->type!=vs->type)
+                    fprintf(stderr, "Variable: %s should be assigned to an array.\n", temp->value.string);
+                    exit(1);
+                }
+                  
+                  // code generate for single assignment
+                if(is_arithop(assignop->children[1]->symbol))
+                {
+
+                    int type=eval_expn(assignop->children[1], scope);
+                    if(vs->type!=type)
                     {
-                        fprintf(stderr, "Type of %s does not match type of %s.\n", vs->name, vs2->name);
-                        exit(1);
+                        fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
+                            exit(1);
+                    }
+                    codeseg_add("push eax");
+                }
+
+                else if(assignop->children[1]->symbol == ID)
+                {
+                    struct var_symbol* vs2 = lookup_var(assignop->children[1]->value.string);
+                    if(vs2==NULL)
+                    {
+                      struct fun_symbol* tempfun=lookup_fun(assignop->children[1]->value.string);
+                      if(tempfun==NULL)
+                      {
+                        //of form x= add(); or x=y;
+                         fprintf(stderr, "Variable: %s should be declared before use.\n", assignop->children[1]->value.string);
+                          exit(1);
+                      }
+
+                    }
+
+                    if(vs2!=NULL)
+                    {
+                        if(vs2->type!=vs->type)
+                        {
+                            fprintf(stderr, "Type of %s does not match type of %s.\n", vs->name, vs2->name);
+                            exit(1);
+                        }
+                    }
+
+                    if(vs->type == T_INT || vs->type == T_BOOL) {
+                      codeseg_add("push dword ptr %s_%d", vs2->name, vs2->scope);
+                    }else if(vs->type == T_STR) {
+                      codeseg_add("strcpy %s_%d, %s_%d", vs->name, vs->scope, vs2->name, vs2->scope);
                     }
                 }
 
-                if(vs->type == T_INT || vs->type == T_BOOL) {
-                  codeseg_add("push dword ptr %s_%d", vs2->name, vs2->scope);
-                }else if(vs->type == T_STR) {
-                  codeseg_add("strcpy %s_%d, %s_%d", vs->name, vs->scope, vs2->name, vs2->scope);
-                }
-              }
-
-              else if(assignop->children[1]->symbol == NUM)
-              {
-                if(vs->type!=get_type(assignop->children[1]->symbol))
+                else if(assignop->children[1]->symbol == NUM)
                 {
-                    fprintf(stderr, "Type of %s does not match type of.\n", vs->name);
-                    exit(1);
+                    if(vs->type!=get_type(assignop->children[1]->symbol))
+                    {
+                        fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
+                        exit(1);
+                    }
+                    codeseg_add("push dword ptr %d", assignop->children[1]->value.inum);
                 }
-                codeseg_add("push dword ptr %d", assignop->children[1]->value.inum);
-              }
 
-              else if(assignop->children[1]->symbol == FLOAT || assignop->children[1]->symbol == CHARL || assignop->children[1]->symbol == STRL || assignop->children[1]->symbol == TRUE || assignop->children[1]->symbol == FALSE || assignop->children[1]->symbol == BOOL)
-              {
-                if(vs->type!=get_type(assignop->children[1]->symbol))
+                else if(assignop->children[1]->symbol == FLOAT || assignop->children[1]->symbol == CHARL || assignop->children[1]->symbol == STRL || assignop->children[1]->symbol == TRUE || assignop->children[1]->symbol == FALSE || assignop->children[1]->symbol == BOOL)
                 {
-                    fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
-                    exit(1);
+                    if(vs->type!=get_type(assignop->children[1]->symbol))
+                    {
+                        fprintf(stderr, "Type of %s does not match type of RHS.\n", vs->name);
+                        exit(1);
+                    }
                 }
-              }
-              
-              // function call case
-              else if(assignop->children[0]->symbol==relType)
-              {
+                  
+                  // function call case
+                else if(assignop->children[0]->symbol==relType)
+                {
                     *(vs->value) = assignop->children[0]->value;
 
                     struct fun_symbol* tempfun=lookup_fun(assignop->children[0]->children[0]->value.string);
@@ -445,22 +534,29 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
                           exit(1);
                       }
                     }
-              }
-
-              if(temp->symbol == ID) {
-                if(vs->type == T_INT) {
-                  codeseg_add("pop eax");
-                  codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
                 }
-              } 
 
-          }
+                if(temp->symbol == ID)
+                {
+                    if(vs->type == T_INT)
+                    {
+                      codeseg_add("pop eax");
+                      codeseg_add("mov %s_%d, eax", vs->name, vs->scope);
+                    }
+                } 
+            }
 
-          else //array assignment x=[1,2,3] 
-          {
-              // array assignment
+            else //array assignment x=[1,2,3] 
+            {
 
-              //TODO: Check for size and type
+
+                struct var_symbol* vs2 = lookup_var(temp->value.string);
+                if(vs2->size==1)
+                {
+                    fprintf(stderr, "Variable: %s cannot be assigned to array.\n", temp->value.string);
+                    exit(1);
+                }
+
               temp = assignop->children[0];
               int size = temp->children_count;
 
@@ -478,7 +574,7 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
 
               }
 
-          }
+            }
       }
 
   }
@@ -581,26 +677,6 @@ void single_assign_stmt(struct tree_node* tr, int scope) {
 
           }
 
-
-
-
-          /*
-          if(tempfunc!=NULL)
-          {
-              //call function
-              for (int i = 1; i < tr->children_count; ++i)
-                  {
-                      struct var_symbol* vs1=lookup_var_offset(tempfunc->symbolTable,i-1);
-                      if(vs1==NULL)
-                      {
-                        fprintf(stderr, "Variable: should be declared before use.\n");
-                        exit(1);
-                      }
-                      *(vs1->value)=tr->children[i]->value;
-                  }
-
-          }
-          */
   }
 
 }

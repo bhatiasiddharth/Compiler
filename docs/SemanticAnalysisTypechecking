@@ -11,6 +11,11 @@ Function overloading is not allowed.
 An identifier used beyond its scope must be viewed as undefined.
 RHS of assignment is same as LHS.
 Function definition for a function being used by another must precede the definition of the function using it.
+When assign a variable to another variable need to see if RHS variable is defined
+In multiple assignment when assign a variable to another variable need to see if RHS variable is defined
+Array can be assigned only to another array not a variable
+Array values of same type
+In array and grid variables must be defined
 
 TYPECHECKING RULES
 Whenever operator, check if type of the variables is same.
