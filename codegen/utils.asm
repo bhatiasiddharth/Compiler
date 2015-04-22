@@ -74,7 +74,7 @@ printbool macro bool
   cmp bool, 1
   jz _print_true
   printstr _false
-  jz _print_end
+  jmp _print_end
   _print_true:
   printstr _true
   _print_end:

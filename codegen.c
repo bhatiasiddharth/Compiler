@@ -35,12 +35,12 @@ void value_tostr(int type, union value* value, int size, char* strval) {
 			sprintf(temp, ", %d dup(0), '#'", size);
 		}else if(type == T_STR) {
 			size = size * 80;
-			// sprintf(temp, ", %d dup('$'), '#'", size);
+			sprintf(temp, ", %d dup('$'), '#'", size);
 		}
 	}
 }
 void dataseg_add(char *identifier, int scope, int type, union value* value, int size) {
-	char entry[MAX_LEN];
+	char entry[DATA_SIZE];
 	char storage_type[3];
 	char strval[10*MAX_LEN + 20];
 	bzero(strval, 10*MAX_LEN + 20);
