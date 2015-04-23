@@ -146,8 +146,8 @@ int insert_var(char * name, Scope scope, int offset, enum var_type type, union v
 
 
      if (l != NULL){
-        fprintf(stderr, "Duplicate declarations of variable: %s.\n", name);
-        exit(1);
+        //fprintf(stderr, "Duplicate declarations of variable: %s.\n", name);
+        //exit(1);
      }
 
       l = (struct var_symbol*) malloc(sizeof(struct var_symbol));

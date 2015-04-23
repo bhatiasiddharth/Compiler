@@ -151,3 +151,20 @@ strcpy macro str1, str2
   mov cx, 80
   rep movsb
 endm strcpy
+
+getarr_size macro arr
+  local x1, x2, _exit
+  lea si, arr
+  mov edx, '#'
+  mov ecx, 0
+  x2:
+  cmp [si], edx
+  jnz x1
+    push ecx
+    jmp _exit
+  x1:
+    add ecx, 4
+    add si, 4
+    jmp x2
+  _exit:
+endm getarr_size

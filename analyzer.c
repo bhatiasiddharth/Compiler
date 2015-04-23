@@ -331,7 +331,7 @@ void declaration_stmt(struct tree_node* tr, int scope) {
 }
 
 void assign_helper(struct tree_node* lnode, struct tree_node* rnode, int scope) {
-  struct tree_node* returnvar;
+  struct tree_node* returnvar = lnode;
   if (lnode->symbol == ID)
   {
         if(rnode->symbol != array) //not array assignment
@@ -427,51 +427,65 @@ void assign_helper(struct tree_node* lnode, struct tree_node* rnode, int scope) 
                 struct fun_symbol* tempfun=lookup_fun(rnode->children[0]->value.string);
                 if(rnode->children[1]->symbol==MethodCall) //of form x= a.add(); or x= a.add(2,4);
                 {
-                  struct fun_symbol* tempfun=lookup_fun(rnode->children[1]->children[0]->value.string);
-                  if(tempfun==NULL)
-                  {
-                      fprintf(stderr, "Function: %s should be declared before use.\n",rnode->children[1]->children[0]->value.string);
-                      exit(1);
-                  }
+                  char method_name[MAX_LEN];
+                  strcpy(method_name, rnode->children[1]->children[0]->value.string);
+                  struct fun_symbol* tempfun=lookup_fun(method_name);
+                  struct var_symbol* vs = lookup_var(rnode->children[0]->value.string);
+                  struct var_symbol* vs2 = lookup_var(lnode->value.string);
 
-                  if(tempfun->param_num!=rnode->children[1]->children_count-1)
-                  {
-                    fprintf(stderr, "Function: %s mismatch parameter count.\n",rnode->children[1]->children[0]->value.string);
-                    exit(1);
-                  }
-
-
-                  for (int i = 0; i < tempfun->param_num; ++i)
-                  {
-                      struct var_symbol* vs=lookup_var_offset(tempfun->symbolTable,i);
-                      if(vs!=NULL)
+                  //printf("%s %s \n", vs->name, method_name);
+                  if(vs!= NULL && strcmp(method_name, "size") == 0 && vs->size > 1) {
+                      //printf("size = %d\n", vs->size - 1);
+                      codeseg_add("getarr_size %s_%d", vs->name, vs->scope);
+                      codeseg_add("pop eax");
+                      codeseg_add("mov %s_%d, eax", vs2->name, vs2->scope);
+                  } else { 
+                      if(tempfun==NULL)
                       {
-
-                        struct var_symbol* vs2 = lookup_var (rnode->children[1]->children[i+1]->value.string);
-                        if(vs2==NULL)
-                        {
-                            if( get_type(rnode->children[1]->children[i+1]->symbol) != vs->type)
-                            {
-                              fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",rnode->children[1]->children[0]->value.string,i+1);
-                               exit(1);
-                            }
-                        }
-                        else
-                        {
-                            if( vs2->type != vs->type)
-                            {
-                              fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",rnode->children[1]->children[0]->value.string,i+1);
-                               exit(1);
-                            }
-                        }
+                          fprintf(stderr, "Function: %s should be declared before use.\n",rnode->children[1]->children[0]->value.string);
+                          exit(1);
                       }
-                  }
 
-                   struct var_symbol* vs3 = lookup_var(returnvar->value.string);
-                  if(vs3->type != tempfun->type)
-                  {
-                    fprintf(stderr, "Function: %s return type mismatch.\n",rnode->children[1]->children[0]->value.string);
-                      exit(1);
+                      if(tempfun->param_num!=rnode->children[1]->children_count-1)
+                      {
+                        fprintf(stderr, "Function: %s mismatch parameter count.\n",rnode->children[1]->children[0]->value.string);
+                        exit(1);
+                      }
+
+
+                      for (int i = 0; i < tempfun->param_num; ++i)
+                      {
+                          struct var_symbol* vs=lookup_var_offset(tempfun->symbolTable,i);
+                          if(vs!=NULL)
+                          {
+
+                            struct var_symbol* vs2 = lookup_var (rnode->children[1]->children[i+1]->value.string);
+                            if(vs2==NULL)
+                            {
+                                if( get_type(rnode->children[1]->children[i+1]->symbol) != vs->type)
+                                {
+                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",rnode->children[1]->children[0]->value.string,i+1);
+                                   exit(1);
+                                }
+                            }
+                            else
+                            {
+                                if( vs2->type != vs->type)
+                                {
+                                  fprintf(stderr, "Function: %s type mismatch for parameter %d.\n",rnode->children[1]->children[0]->value.string,i+1);
+                                   exit(1);
+                                }
+                            }
+                          }
+                      }
+
+                       struct var_symbol* vs3 = lookup_var(returnvar->value.string);
+                      if(vs3->type != tempfun->type)
+                      {
+                        fprintf(stderr, "Function: %s return type mismatch.\n",rnode->children[1]->children[0]->value.string);
+                          exit(1);
+                      }
+
                   }
                 }
 
@@ -559,7 +573,6 @@ void assign_helper(struct tree_node* lnode, struct tree_node* rnode, int scope) 
         else //array assignment x=[1,2,3] 
         {
 
-
           struct var_symbol* vs2 = lookup_var(lnode->value.string);
 
           if(!vs2->mutable)
@@ -574,8 +587,7 @@ void assign_helper(struct tree_node* lnode, struct tree_node* rnode, int scope) 
               exit(1);
           }
 
-          lnode = rnode;
-          int size = lnode->children_count;
+          int size = rnode->children_count;
 
           struct var_symbol* vs=lookup_var (lnode->value.string);
           if(vs==NULL)
@@ -587,7 +599,7 @@ void assign_helper(struct tree_node* lnode, struct tree_node* rnode, int scope) 
           for (int i = 1; i < size; ++i)
           {
 
-              vs->value[i-1] = lnode->children[i]->value;
+              vs->value[i-1] = rnode->children[i]->value;
 
           }
 
@@ -862,19 +874,19 @@ void func_defn_stmt(struct tree_node* tr, int scope, FILE* fp) {
   else
     type=get_type(tr->children[3]->symbol);
 
-  insert_fun(tr->children[1]->value.string, temp_table, (tr->children[2]->children_count)/2 , type);
+  insert_fun(tr->children[1]->value.string, temp_table, (tr->children[2]->children_count)/3 , type);
 
   push_table(temp_table);
 
   //for parameter list
   temp = tr->children[2];
-   for (int i = 0; i < temp->children_count/2; i++) {
+   for (int i = 0; i < temp->children_count/3; i++) {
       union value* value = (union value*) malloc(sizeof(union value));
       //*value= 0;
       bzero(value, sizeof(union value));
-      type = get_type(temp->children[2*i+1]->symbol);
+      type = get_type(temp->children[3*i+2]->symbol);
       //later send value
-      insert_var(temp->children[2*i]->value.string, current_scope, temp_table->size++, type,value,1,0);
+      insert_var(temp->children[3*i]->value.string, current_scope, temp_table->size++, type,value,1,0);
   }
 
   for (int i = 0; i < tr->children_count; i++) {
@@ -960,8 +972,9 @@ void st_fill(struct tree_node* tr, int scope, struct symbol_table* tables,char* 
       return;
     }
 
-    // ifelse stmt
+    // if stmt
     if(tr->symbol == IfStmt || tr->symbol == ElseStmt){
+
       ifelse_stmt(tr, scope, tables, func_name, fp);
       return;
     }

@@ -82,6 +82,10 @@ int gettok(FILE *fp, struct token* token) {
       build_lexeme(token->lexeme, token_buffer[count]);
     }
     strcpy(token->value.string, token->lexeme);
+    if(strlen(token->lexeme) > 10) {
+      fprintf(stderr, "(%d, %d) Error - Identifier length should be less than 10\n", linenum, colnum);
+      exit(1);
+    }
     for(i = KWRD_BEGIN; i < KWRD_BEGIN + KWRD_CNT; i++) {
       if(strcasecmp(token->lexeme, token_names[i]) == 0)
         token->type = i;

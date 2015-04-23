@@ -39,15 +39,8 @@ To execute asm
 
 TODO
 ======
-- Accept some special symbols in STRL like >, =, <, !
+- .size()
 - Accept negative numbers in lexer/parser
-- limit number values
-- limit identifier and string length
 - Codegen what all did you do
 - ~~multiple assignment codegen and typechecking (done implicitly by single assignment)~~
-- .size()
-
-Errors
-======
-- Duplicate declarations of variable: .
-- arr = [1, 2, 3];
+- ~~limit identifier and string length~~
