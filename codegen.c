@@ -32,10 +32,10 @@ void value_tostr(int type, union value* value, int size, char* strval) {
 	if(size > 1) {
 		size = 10 - size;
 		if(type == T_INT || type == T_BOOL || type == T_FLOAT){
-			sprintf(temp, ", %d dup(0), '#'", size);
+			sprintf(temp, ", '#', %d dup(0)", size);
 		}else if(type == T_STR) {
 			size = size * 80;
-			sprintf(temp, ", %d dup('$'), '#'", size);
+			sprintf(temp, ", '#', %d dup('$')", size);
 		}
 	}
 }

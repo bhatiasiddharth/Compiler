@@ -41,6 +41,9 @@ TODO
 ======
 - .size()
 - Accept negative numbers in lexer/parser
-- Codegen what all did you do
+- ~~Codegen what all did you do~~
 - ~~multiple assignment codegen and typechecking (done implicitly by single assignment)~~
 - ~~limit identifier and string length~~
+
+let arr = [1,x,3];
+multiple declarations

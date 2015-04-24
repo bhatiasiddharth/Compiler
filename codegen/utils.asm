@@ -155,16 +155,33 @@ endm strcpy
 getarr_size macro arr
   local x1, x2, _exit
   lea si, arr
-  mov edx, '#'
+  mov dl, '#'
   mov ecx, 0
   x2:
-  cmp [si], edx
+  cmp [si], dl
   jnz x1
-    push ecx
+    mov eax, ecx
     jmp _exit
   x1:
-    add ecx, 4
-    add si, 4
+    inc ecx
+    add si, 1
     jmp x2
   _exit:
 endm getarr_size
+
+getstr_size macro arr
+  local x1, x2, _exit
+  lea si, arr
+  mov dl, '$'
+  mov ecx, 0
+  x2:
+  cmp [si], dl
+  jnz x1
+    mov eax, ecx
+    jmp _exit
+  x1:
+    inc ecx
+    add si, 1
+    jmp x2
+  _exit:
+endm getstr_size

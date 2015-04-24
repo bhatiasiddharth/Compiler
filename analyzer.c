@@ -438,8 +438,18 @@ void assign_helper(struct tree_node* lnode, struct tree_node* rnode, int scope) 
                   if(vs!= NULL && strcmp(method_name, "size") == 0 && vs->size > 1) {
                       //printf("size = %d\n", vs->size - 1);
                       codeseg_add("getarr_size %s_%d", vs->name, vs->scope);
-                      codeseg_add("pop eax");
-                      codeseg_add("mov %s_%d, eax", vs2->name, vs2->scope);
+                      if(vs->type == T_INT || vs->type == T_BOOL) {
+                        codeseg_add("mov ebx, 4");
+                      }else if(vs->type == T_STR) {
+                        codeseg_add("mov ebx, 80");
+                      }
+                      codeseg_add("mov edx, 0");
+                      codeseg_add("div ebx", vs->name, vs->scope);
+                      codeseg_add("push eax");
+                  } else if(vs!= NULL && strcmp(method_name, "length") == 0 && vs->size == 1 && vs->type == T_STR) {
+                      //printf("size = %d\n", vs->size - 1);
+                      codeseg_add("getstr_size %s_%d", vs->name, vs->scope);
+                      codeseg_add("push eax");
                   } else { 
                       if(tempfun==NULL)
                       {
@@ -519,7 +529,9 @@ void assign_helper(struct tree_node* lnode, struct tree_node* rnode, int scope) 
                           }
 
 
-                        }if(vs2->type == T_STR) {
+                        }
+
+                        if(vs2->type == T_STR) {
                           if(rnode->children[2]->symbol == ID) {
                               struct var_symbol* vs3 = lookup_var (rnode->children[2]->value.string);
                               if(vs3->type != T_INT) {
