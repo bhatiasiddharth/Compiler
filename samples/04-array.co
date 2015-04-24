@@ -1,4 +1,18 @@
 main() {
 	let mut arr = [1, 1, 2, 5];
 	arr=[1,2,3];
+	let k=4/2;
+	print(k);
+	if(k<2)
+	{
+		print("case 1");
+	}
+	elseif(k==2)
+	{
+		print("case 2");
+	}
+	else
+	{
+		print("case 3");
+	}
 }

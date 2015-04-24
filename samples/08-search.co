@@ -1,0 +1,35 @@
+main() {
+	let arr=[3,4,7,8,9];
+	let mut num=0;
+	let mut (first,last,middle)=(0,4,0);
+	let str="Enter the number to be searched in the array 3 4 7 8 9";
+	print(str);
+	scan(num);
+	middle= (first+last)/2;
+	let mut flag=0;
+	let mut k=0;
+	while(first<=last)
+	{
+		k=arr[middle];
+		if(k<num)
+		{
+			first=middle+1;
+		}
+		elseif(k==num)
+		{
+			print("Found");
+			first=last+1;
+			flag=1;
+		}
+		else
+		{
+			last=middle-1;
+		}
+		middle= (first+last)/2;
+	}
+
+	if(flag==0)
+	{
+		print("Not Found");
+	}
+}

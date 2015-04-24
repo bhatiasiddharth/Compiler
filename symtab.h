@@ -18,6 +18,8 @@ struct var_symbol {
      int offset;
      // for string and array
      unsigned int size;
+     unsigned int rows;
+     unsigned int columns;
 
      unsigned int mutable:1;
      unsigned int initialized:1;

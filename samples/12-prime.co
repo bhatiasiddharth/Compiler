@@ -1,0 +1,31 @@
+main() {
+	let mut (num,n,flag,c,count,i,mod)=(3,0,0,2,2,0,0);
+	print("Enter N");
+	scan(n);
+	print(" ");
+	if(n>=1)
+	{
+		print(2);
+	}
+	while(count<=n)
+	{
+		i=num-1;
+		c=2;
+		flag=0;
+		while(c<=i)
+		{	
+			mod=num - c* (num/c);
+			if(mod==0)
+			{
+				flag=1;
+			}
+			c=c+1;
+		}
+		if(flag==0)
+		{
+			print(num);
+			count=count+1;
+		}
+		num=num+1;
+	}
+}

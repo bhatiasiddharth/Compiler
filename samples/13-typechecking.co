@@ -1,0 +1,58 @@
+fn add(x:i32, y:i32) -> i32
+{
+	let mut ans = 0;
+	ans = x + y;
+	return ans;
+}
+
+fn add(x:f32, y:f32)
+{
+	//Function overloading is not allowed.
+	let mut ans = 0;
+	ans = x + y;
+	return ans;
+	addvoid(2,3);		//Function definition for a function being used by another must precede the definition of the function using it.
+}
+
+fn addvoid(x:i32, y:i32)
+{
+	let mut ans = 0;
+	ans = x + y;	
+}
+
+main ()
+{
+	let mut x=0;		//Type inferencing is enforced.
+	let mut x=5;		//An identifier cannot be declared multiple times in the same scope.
+	y=5;				//An identifier must be declared before its use.
+
+	x = add(1, 2, 3);	//Number of parameters in function call.
+	x = add(1,1.3);		//Types of parameters in function call.
+
+	let z="hello";
+	z=add(1,2);			//Return type of function should be same as type of variable where returned.
+
+	x = addvoid(1,2);	//Function that does not return any value, must be invoked appropriately.
+
+	if(1<2)
+	{
+		let scope=1;
+	}
+	print(scope);		//An identifier used beyond its scope must be viewed as undefined.
+
+	x=z;				//RHS of assignment is same as LHS.
+
+	x=a;				//When assign a variable to another variable need to see if RHS variable is defined.
+
+	let (a,b,c) = (1,2,d);	//In multiple assignment when assign a variable to another variable need to see if RHS variable is defined.
+
+	let arr = [1,2,3];
+	arr=4;				//Array can be assigned only to another array not a variable.
+
+	let arr2 = [1,2,"hello"];	//Array values of same type.
+
+	let arr3 = [g,3,4];	//In array and grid variables must be defined.
+
+	let var = 6;
+	var=7;				//Mutability check for variables in scan and assignment.
+}
