@@ -5,11 +5,11 @@ fn add(x:i32, y:i32) -> i32
 	return ans;
 }
 
-fn add(x:f32, y:f32)
+fn add(x:i32, y:i32)
 {
 	//Function overloading is not allowed.
 	let mut ans = 0;
-	ans = x + y;
+	ans = x + y;		//Type of expression should be same as type of LHS.
 	return ans;
 	addvoid(2,3);		//Function definition for a function being used by another must precede the definition of the function using it.
 }
@@ -29,7 +29,7 @@ main ()
 	x = add(1, 2, 3);	//Number of parameters in function call.
 	x = add(1,1.3);		//Types of parameters in function call.
 
-	let z="hello";
+	let mut z="hello";
 	z=add(1,2);			//Return type of function should be same as type of variable where returned.
 
 	x = addvoid(1,2);	//Function that does not return any value, must be invoked appropriately.
@@ -46,13 +46,16 @@ main ()
 
 	let (a,b,c) = (1,2,d);	//In multiple assignment when assign a variable to another variable need to see if RHS variable is defined.
 
-	let arr = [1,2,3];
+	let mut arr = [1,2,3];
 	arr=4;				//Array can be assigned only to another array not a variable.
 
 	let arr2 = [1,2,"hello"];	//Array values of same type.
 
-	let arr3 = [g,3,4];	//In array and grid variables must be defined.
+	let mut arr3 = [1,g,4];	//In array and grid variables must be defined.
 
 	let var = 6;
 	var=7;				//Mutability check for variables in scan and assignment.
+
+	let arr4= [1,2,3];
+	print(arr4[4]);		//Array index must be within size.
 }

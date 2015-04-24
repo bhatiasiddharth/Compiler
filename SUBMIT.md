@@ -6,13 +6,18 @@ Everything is working
 - Parser
 - Abstract Syntax Tree
 - Symbol Table
+- Type checking
+- Semantic rules
+- Code generation
 
 Instructions
 =============
-
 For each input code, a new file is created for tokens, parse tree, abstract syntax tree and symbol table 
 
-	make
-	./compiler source/05-scoping.co
+To create asm
 
-	make clean
+	make
+
+To execute asm
+
+	make exec

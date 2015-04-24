@@ -1,43 +1,44 @@
-one pass in AST for symbol table, typechecking and code generation
-macros and not method calls for code generation
-script for masm
-tree generation
-lexer: identifier length
+SEMANTIC ANALYSIS RULES
+=========================
 
-SEMANTIC ANALYSIS RULES:
-An identifier cannot be declared multiple times in the same scope.
-An identifier must be declared before its use.
-Number of parameters in function call.
-Types of parameters in function call.
-Return type of function should be same as type of variable where returned.
-Function that does not return any value, must be invoked appropriately.
-An if statement must have the expression of boolean type.
-A while statement must have the expression of boolean type.
-Function overloading is not allowed.
-An identifier used beyond its scope must be viewed as undefined.
-RHS of assignment is same as LHS.
-Function definition for a function being used by another must precede the definition of the function using it.
-When assign a variable to another variable need to see if RHS variable is defined.
-In multiple assignment when assign a variable to another variable need to see if RHS variable is defined.
-Array can be assigned only to another array not a variable.
-Array values of same type.
-In array and grid variables must be defined.
-Mutability check for variables in scan and assignment.
+	- An identifier cannot be declared multiple times in the same scope.
+	- An identifier must be declared before its use.
+	- Number of parameters in function call.
+	- Types of parameters in function call.
+	- Return type of function should be same as type of variable where returned.
+	- Function that does not return any value, must be invoked appropriately.
+	- An if statement must have the expression of boolean type.
+	- A while statement must have the expression of boolean type.
+	- Function overloading is not allowed.
+	- An identifier used beyond its scope must be viewed as undefined.
+	- RHS of assignment is same as LHS.
+	- Function definition for a function being used by another must precede the definition of the function using it.
+	- When assign a variable to another variable need to see if RHS variable is defined.
+	- In multiple assignment when assign a variable to another variable need to see if RHS variable is defined.
+	- Array can be assigned only to another array not a variable.
+	- Array values of same type.
+	- In array and grid variables must be defined.
+	- Mutability check for variables in scan and assignment.
+	- Type of expression should be same as type of LHS.
+	- Array index must be within size.
 
-TYPECHECKING RULES:
-Whenever operator, check if type of the variables is same.
-Type inferencing is enforced.
-Types are to be written explicitly only in function declarations.
-The type of i32 is integer.
-The type of f32 is real.
-The type of bool is boolean.
-The type of expression is integer if both expressions are of type integer and the operator is arithmetic.
-The type of expression is real if both expressions are of type real and the operator is arithmetic.
-The type of expression is boolean if both expressions are of type integer and the operator is relational.
-The type of expression is boolean if both expressions are of type real and the operator is relational.
-The type of expression is boolean if both expressions are of type integer and the operator is logical.
+TYPECHECKING RULES
+===================
 
-CODE GENERATION:
+	- Whenever operator, check if type of the variables is same.
+	- Type inferencing is enforced.
+	- Types are to be written explicitly only in function declarations.
+	- The type of i32 is integer.
+	- The type of f32 is real.
+	- The type of bool is boolean.
+	- The type of expression is integer if both expressions are of type integer and the operator is arithmetic.
+	- The type of expression is real if both expressions are of type real and the operator is arithmetic.
+	- The type of expression is boolean if both expressions are of type integer and the operator is relational.
+	- The type of expression is boolean if both expressions are of type real and the operator is relational.
+	- The type of expression is boolean if both expressions are of type integer and the operator is logical.
+
+CODE GENERATION
+================
 
 Scan
 	Number
@@ -83,3 +84,5 @@ Multiple Assignments
 If Elseif
 
 While
+
+Scoping

@@ -3,7 +3,9 @@ main() {
 	let grid1=[1,2:3,4];
 	let grid2=[5,6:7,8];
 
-	let mut (size,i,k,a,b)=(4,0,0,0,0);
+	let mut (size,i,k,a,b)=(0,0,0,0,0);
+	size=grid1.size();
+	size=size;
 	print("Multiplication of matrices");
 	while(i<size)
 	{

@@ -2,13 +2,14 @@ CC = gcc
 CFLAGS = -g -std=c99
 DEPS = parser.o lexer.o stack.o tree.o ast.o symtab.o analyzer.o codegen.o compiler.o
 
-SAMPLE = samples/01-functions
+SAMPLE = samples/06-prime
 .PHONY = debug
-chrome:	run create-tree
-	@open -a "Google Chrome" $(SAMPLE)-syntax.svg
 
 run: compiler
 	@./compiler.out $(SAMPLE).co
+
+chrome:	run create-tree
+	@google-chrome $(SAMPLE)-syntax.svg
 
 create-tree: $(SAMPLE)-syntax.tree $(SAMPLE)-parse.tree
 	@node tree-printer/main.js $(SAMPLE)-syntax.tree

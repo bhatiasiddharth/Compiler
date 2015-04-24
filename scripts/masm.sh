@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export SDL_VIDEODRIVER=dummy
+#export SDL_VIDEODRIVER=dummy
 MASM_PATH=~/MASM611/BIN/
 DOSBOX=dosbox
 cp $1 "$MASM_PATH/temp.asm"

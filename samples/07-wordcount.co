@@ -1,0 +1,9 @@
+main() {
+	let mut str=" ";
+	print("Enter String");
+	scan(str);
+	let mut length=0;
+	length=str.length();
+	length=length-1;
+	print(length);
+}

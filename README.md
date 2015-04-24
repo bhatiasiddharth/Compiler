@@ -39,5 +39,3 @@ To execute asm
 
 TODO
 ======
-- array index
-- all errors
