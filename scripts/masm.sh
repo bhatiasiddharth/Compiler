@@ -1,7 +1,8 @@
 #!/bin/sh
 
-MASM_PATH=~/MASM611/bin/
-DOSBOX=/Users/akshay/Applications/DOSBox.app/Contents/MacOS/DOSBox
+export SDL_VIDEODRIVER=dummy
+MASM_PATH=~/MASM611/BIN/
+DOSBOX=dosbox
 cp $1 "$MASM_PATH/temp.asm"
 dirname=$(dirname "$1")
 filename=$(basename "$1")
@@ -17,8 +18,8 @@ temp.com > result.out\n
 exit"
 echo $CONF > dosbox.conf
 $DOSBOX -conf dosbox.conf > /dev/null
-mv "$MASM_PATH""RESULT.out" "$MASM_PATH$filename.out"
+mv "$MASM_PATH""RESULT.OUT" "$MASM_PATH$filename.out"
 mv "$MASM_PATH$filename.out" $dirname
 rm dosbox.conf
-cat "$MASM_PATH/TEMP.out"
+cat "$MASM_PATH/TEMP.OUT"
 cat $dirname/$filename.out

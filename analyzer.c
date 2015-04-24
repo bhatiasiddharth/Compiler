@@ -45,7 +45,7 @@ char* get_relop(int symbol) {
     return op;
   }
   if(symbol == EQ) {
-    strcpy(op, "jae");
+    strcpy(op, "je");
     return op;
   }
   if(symbol == NE) {
@@ -106,6 +106,7 @@ int eval_expn(struct tree_node* tr, int scope) {
       codeseg_add("push eax");
       return type1;
     }else if(tr->symbol == DIV) {
+      codeseg_add("mov edx,0  ; division");
       codeseg_add("pop ebx  ; division");
       codeseg_add("pop eax");
       codeseg_add("div ebx");
@@ -496,12 +497,46 @@ void assign_helper(struct tree_node* lnode, struct tree_node* rnode, int scope) 
                       if(vs2 != NULL){
                         // only for numbers right now
                         if(vs2->type == T_INT || vs2->type == T_BOOL) {
-                          codeseg_add("lea si,  %s_%d ; get array index", vs2->name, vs2->scope);
-                          codeseg_add("add si,  %d", 4*rnode->children[2]->value.inum);
-                          codeseg_add("push dword ptr [si]", vs2->name, vs2->scope);
+
+                          if(rnode->children[2]->symbol == ID) {
+                              struct var_symbol* vs3 = lookup_var (rnode->children[2]->value.string);
+                              if(vs3->type != T_INT) {
+                                  fprintf(stderr, "Array index %s must be of type integer\n", rnode->children[2]->value.string);
+                                  exit(1);
+                              }
+                              codeseg_add("lea si,  %s_%d ; get array index", vs2->name, vs2->scope);
+                              codeseg_add("mov eax, %s_%d", vs3->name, vs3->scope);
+                              codeseg_add("mov edx, 4");
+                              codeseg_add("mul edx");
+                              codeseg_add("add si, ax");
+                              codeseg_add("push dword ptr [si]", vs2->name, vs2->scope);
+                          }
+                          else
+                          {     
+                            codeseg_add("lea si,  %s_%d ; get array index", vs2->name, vs2->scope);
+                            codeseg_add("add si,  %d", 4*rnode->children[2]->value.inum);
+                            codeseg_add("push dword ptr [si]", vs2->name, vs2->scope);                            
+                          }
+
+
                         }if(vs2->type == T_STR) {
-                          codeseg_add("lea si,  %s_%d ; get array index", vs2->name, vs2->scope);
-                          codeseg_add("add si,  %d", 80*rnode->children[2]->value.inum);
+                          if(rnode->children[2]->symbol == ID) {
+                              struct var_symbol* vs3 = lookup_var (rnode->children[2]->value.string);
+                              if(vs3->type != T_INT) {
+                                  fprintf(stderr, "Array index %s must be of type integer\n", rnode->children[2]->value.string);
+                                  exit(1);
+                              }
+                              codeseg_add("lea si,  %s_%d ; get array index", vs2->name, vs2->scope);
+                              codeseg_add("mov eax, %s_%d", vs3->name, vs3->scope);
+                              codeseg_add("mov edx, 80");
+                              codeseg_add("mul edx");
+                              codeseg_add("add si, ax");
+                          }
+                          else
+                          {   
+                            codeseg_add("lea si,  %s_%d ; get array index", vs2->name, vs2->scope);
+                            codeseg_add("add si,  %d", 80*rnode->children[2]->value.inum); 
+                          }
                         }
                       }
                 }
@@ -812,7 +847,13 @@ void scan_stmt(struct tree_node* tr, int scope) {
 
   if(symbol == ID) {
     struct var_symbol* vs = lookup_var(tr->children[1]->value.string);
+
     if(vs != NULL) {
+      if(!vs->mutable)
+      {
+           fprintf(stderr, "Variable: %s must be mutable.\n",vs->name);
+          exit(1); 
+      }
       if(vs->type == T_INT) {
         // scan int
         codeseg_add("scannum %s_%d", tr->children[1]->value.string, vs->scope);

@@ -30,3 +30,40 @@ The type of expression is real if both expressions are of type real and the oper
 The type of expression is boolean if both expressions are of type integer and the operator is relational.
 The type of expression is boolean if both expressions are of type real and the operator is relational.
 The type of expression is boolean if both expressions are of type integer and the operator is logical.
+
+CODE GENERATION
+
+Scan
+	Number
+	String
+
+Print
+	Number
+	String
+	Boolean
+
+Relational Operators
+Arithmetic Operators
+Logical Operators
+Arrays
+
+Declaration
+	Arrays
+	Strings
+	Integers
+Assignment
+	arr index - for int, boolean, strings arrays
+		arr[4]
+		arr[i]
+
+	variables
+	constants-integer, string, boolean
+	.size()
+	expressions
+
+Multiple Assignments
+If Elseif
+While
+
+
+
