@@ -23,3 +23,6 @@ mv "$MASM_PATH$filename.out" $dirname
 rm dosbox.conf
 cat "$MASM_PATH/TEMP.OUT"
 cat $dirname/$filename.out
+if ! grep error "$MASM_PATH/TEMP.OUT"; then
+	cat $dirname/$filename.out
+fi
